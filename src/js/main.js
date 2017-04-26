@@ -744,6 +744,10 @@ var myApp = myApp || {};
 					$("#mpaResultsWrapper").append("<p><b>The MPA analysis returned an error...</b></p>");
 					$("#mpaResultsWrapper").append("<p style='color:red;'>GET Request '"+wpsRequest+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
+                    $("#areaTypeSelector").prop("disabled", false);
+                    $("#areaSelector").prop("disabled", false);
+                    $("#analyzer").attr("disabled",false);
+                    $("#mpaResultsLoader").hide();
 				}
 			});
 		}
