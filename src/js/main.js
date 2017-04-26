@@ -958,8 +958,7 @@ var myApp = myApp || {};
             $("#mpaReportLoader").show(); //show loader (until WFS request is fetched)
             
             //report object preparation
-            var data = this.processData.filter(function(row){if(row.id === id) return row})[0];
-            console.log(data);
+            var data = this.processData.filter(function(row){if(row.id === String(id)) return row})[0];
             this.report = {
                 id : data.id,
                 name: data.name,

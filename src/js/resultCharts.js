@@ -1,6 +1,7 @@
 myApp.initResultsChart = function(data) {
     'use strict';
     var this_ = this;
+    console.log(data);
     var chartNames  = jQuery.extend([], data[0]);
     var chartData   = jQuery.extend([], data[1]);
     var dataDisplay = [[],[]];
