@@ -1,0 +1,19 @@
+{
+  "name": "mpa-web",
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "authors": [
+    "GRID-Arendal"
+  ],
+  "license": "",
+  "homepage": "http://catalina.grida.no/~mpaweb/",
+  "devDependencies": {
+    "bootstrap-less-only": "^3.3.7"
+  },
+  "dependencies": {
+    "jquery": "^2.0.3",
+    "bootstrap-javascript": "^3.0.2",
+    "highcharts": "^5.0.6"
+  }
+}

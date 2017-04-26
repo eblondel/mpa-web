@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang=""> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang=""> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9" lang=""> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+
+<head>
+    <title>MPA-Web</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#0271BE" />
+    <meta name="msapplication-navbutton-color" content="#0271BE" />
+    
+    <link rel="icon" type="image/png" href="https://mpa-web.catalina.grida.no/favicon.png" />
+    <link rel="SHORTCUT ICON" href="https://mpa-web.catalina.grida.no/favicon.ico" />
+    
+    <!-- MSIE. -->
+    <!-- CSS stylesheets -->
+    <!-- =============== -->
+    
+    <!--
+    <link rel="stylesheet" href="css/cssgrids-min.css" />
+    <link rel="stylesheet" href="js/vendor/select2/select2.css" />
+    <link rel="stylesheet" href="js/vendor/ol3/ol3.css" />
+    <link rel="stylesheet" href="js/vendor/ol3/ol3-loadingpanel.css" />
+    <link rel="stylesheet" href="js/vendor/ol3/ol3-zoomtomaxextent.css" />
+    <link rel="stylesheet" href="js/vendor/ol3/ol3-layerswitcher.css" />
+    <link rel="stylesheet" href="js/vendor/ol3/ol3-tooltip.css" />
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="//cdn.datatables.net/colreorder/1.3.2/css/colReorder.dataTables.min.css" />
+    <link rel="stylesheet" href="//cdn.datatables.net/fixedcolumns/3.2.2/css/fixedColumns.dataTables.min.css" />
+    <link rel="stylesheet" href="//cdn.datatables.net/fixedheader/3.1.2/css/fixedHeader.dataTables.min.css" />
+    <link rel="stylesheet" href="css/mpa.css" />
+    -->
+    <link rel="stylesheet" type="text/css" href="https://mpa-web.catalina.grida.no/css/main.css" />
+
+    <!-- Javascripts deps -->
+    <!-- ================ -->
+
+    <!-- JQuery main & plugins -->
+    <!--<script type="application/javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script type="application/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    Jquery Select2
+    <script type="application/javascript" src="js/vendor/select2/select2.js"></script>
+    Jquery DataTable
+    <script type="application/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <script type="application/javascript" src="https://cdn.datatables.net/colreorder/1.3.2/js/dataTables.colReorder.min.js"></script>
+    <script type="application/javascript" src="https://cdn.datatables.net/fixedcolumns/3.2.2/js/dataTables.fixedColumns.min.js"></script>
+    <script type="application/javascript" src="https://cdn.datatables.net/fixedheader/3.1.2/js/dataTables.fixedHeader.min.js"></script>
+
+    Bootstrap
+    <script type="application/javascript" src="js/vendor/bootstrap.js"></script>
+
+    basic templating
+    <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js"></script>
+
+    OpenLayers 3
+    <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.18.2/ol-debug.js"></script>
+    <script type="application/javascript" src="js/vendor/ol3/ol3-loadingpanel.js"></script>
+    <script type="application/javascript" src="js/vendor/ol3/ol3-zoomtomaxextent.js"></script>
+    <script type="application/javascript" src="js/vendor/ol3/ol3-layerswitcher.js"></script>
+    <script type="application/javascript" src="js/vendor/ol3/ol3-popup.js"></script>-->
+
+    <!-- MPA app -->
+    <script type="application/json" src="https://mpa-web.catalina.grida.no/data/geodata.json"></script>
+    <script type="application/javascript" src="https://mpa-web.catalina.grida.no/js/main.js"></script>
+    
+    <!-- LiveDev reload during development. -->
+    <!--<script type="application/javascript" src="json/liveDev.json"></script>-->
+    <!--<script type="application/javascript" src="js/mpa.js"></script>
+    
+    Navigation
+    <script type="application/javascript" src="js/nav.js"></script>
+    
+    Highcharts
+    <script type="application/javascript" src="js/vendor/highcharts.js"></script>
+    <script type="application/javascript" src="js/vendor/exporting.js"></script>
+    <script type="application/javascript" src="js/resultCharts.js"></script>-->
+
+</head>
+
+<body>
+    <!-- Browse Happy --><!--[if lte IE 9]><style type='text/css' scoped>* {display: none;} html, body, br {color: #000000; display: block !important; background-color: #FFFFFF; background-image: none;} a, strong {display: inline !important;} a {color: #0000FF !important;text-decoration: underline !important;} a:visited {color: #800080 !important;} a:active {color: #FF0000 !important;} .browsehappy {position: absolute;width: 100%;height: 100%;left: 0px;top: 0px;background-color: #ffffff;display: block !important;font-family: "Times New Roman";font-size: 25px;text-align: center;margin: 0px;padding: 0px;}</style><div class="browsehappy"><br /><br />You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</div><![endif]-->
+    <!-- NoScript --><noscript><style type='text/css' scoped> html, body { overflow: hidden; } a, strong { display: inline !important; } a { color: #0000FF !important; text-decoration: underline !important; } a:visited { color: #800080 !important; } a:active { color: #FF0000 !important; } noscript, .noscript { display: block !important; position: absolute !important; z-index: 1000; width: 100%; height: 100%; left: 0px; top: 0px; background-color: #ffffff; color: #000; font-family: "Times New Roman"; font-size: 25px; text-align: center; margin: 0px; padding: 0px; } </style> <div class="noscript"> <br /> <br /> JavaScript is <strong>required</strong> to access this site. Please <a href="http://www.activatejavascript.org/">enable JavaScript</a> to access this site.</div></noscript>
+    
+    <div class="wrapper">
+    <!--<header class="navbar navbar-inverse">
+        <nav class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">
+                    <h1 id="mpa-web">MPA-WEB</h1>
+                    <img alt="MPA-WEB" id="logo" src="img/logo-temp.png" />
+                </a>
+            </div>
+        </nav>
+    </header>-->
+    
+    <section class="col-sm-2 sidebar">
+        
+        <!-- Presentation -->
+        <div class="sidebarContent">
+            <p id="mpaSummary">Welcome to the <b>Protected Area Impact Map VRE Data Explorer</b>. This application allows users to query a rich database to report on the presence of natural features and human usages of managed areas (i.e.: Marine Protected Areas) relative to a target region of interest (i.e.: Exclusive Economic Zone). The target region to be reported on can be defined in the menu below or by selecting a region on the map. A custom area can also be uploaded to this service and reported on. The different datasets included in the report are listed on the right. The interactive map can be used to get an overview of the spatial distribution of different features.</p>
+        </div>
+
+        <!-- Web-form -->
+        <div class="sidebarContent" id="browser">
+            <form id="mpaForm">
+                <div class="selector-wrapper">
+                    <div id="areaTypeSelectorWrapper">
+                        <select id="areaTypeSelector">
+                            <option value="EEZ">Exclusive Economic Zones</option>
+                            <option value="ECOREGION">Ecoregions</option>
+                        </select>
+                    </div>
+                </div>
+                <br>
+                <div class="selector-wrapper">
+                    <p id="areaSelectorLoader" class="loader">
+                        <img alt="loading" src="https://mpa-web.catalina.grida.no/img/glyphicons-366-restart@3x-inv.png" class="small" />
+                        <!--<br>Loading data...-->
+                    </p>
+                    <div id="areaSelectorWrapper">
+                        <select id="areaSelector" style="display:none;margin-top:10px;"></select>
+                    </div>
+                </div>
+                <br>
+                <input id="analyzer" type="button" value="Run Analysis" style="display:none;margin-top:10px;">
+            </form>
+        </div>
+
+        
+        <nav class="sidebarContent">
+            <ul>
+                <li class="active" data-where="#pageMap">Map Explorer</li>
+                <li data-where="#pageResults">Results</li>
+                <li data-where="#pageReports">Report</li>
+            </ul>
+        </nav>
+
+    </section>
+    
+    <section class="col-sm-10 pages">
+        <div class="page" id="pageMap">
+            <div class="content">
+                <div id="map"></div>
+                <div id="layerswitcher"></div>
+            </div>
+        </div>
+
+        <!-- Reporting -->
+        <div class="page" id="pageResults">
+            <div class="content">
+                <div id="mpaResults">
+                    <p id="mpaResultsLoader" class="loader">
+                        <img alt="loading" src="https://mpa-web.catalina.grida.no/img/glyphicons-366-restart@3x.png" />
+                        <br /><br />Analyzing MPAs...
+                    </p>
+                    <div id="mpaResultsWrapper">
+                        
+                    </div>
+                    <div id="mpaResultsCharts" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="pageReports">
+            <div class="content">
+                <div id="mpaReports">
+                    <p id="mpaReportLoader" class="loader">
+                        <img alt="loading" src="https://mpa-web.catalina.grida.no/img/glyphicons-366-restart@3x.png" />
+                        <br /><br />Preparing report...
+                    </p>
+                    <div id="mpaReportMainWrapper"></div>
+                    <div id="mpaReportFeatureWrapper"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+        
+    <!-- Reporting templates -->
+    <!-- Main report (MPA + buttons) -->
+    <script id="mpa-report-template1" type="x-tmpl-mustache">
+        <h2 class="mpa-report-title">{{name}} <small class="mpa-report-location">{{type}}{{#isMPA}} - located in {{target.name}}{{/isMPA}}</small></h2>
+        <p><b>Surface:</b> {{surface}} {{surfaceUnit}}</p>
+        <p><b>Geomorphic features:</b>
+         {{#features.length}}<ul>{{#features}}<li class="mpa-report-button"><input id="{{metadata.id}}-button" type="button" class="mpa-report-button" value="{{metadata.title}}" onclick="myApp.displayReport('{{metadata.id}}')"/></li>{{/features}}</ul>{{/features.length}}
+        </p>
+    </script>
+    <!-- Feature report -->
+    <script id="mpa-report-template2" type="x-tmpl-mustache">
+    
+      {{#features.length}}<ul class="mpa-report-featurelist">{{#features}}
+        <li class="mpa-report-feature">
+            <div class="mpa-report-feature-wrapper">
+                <h3 class="mpa-report-feature-title"><span style="color:#000;">Feature:</span> {{metadata.title}}</h3>
+                
+                <div class="mpa-report-feature-stats">
+                    <p><ul><li class="mpa-report-indicator"><b>Area in <span class="mpa-report-feature-target">{{target.name}}</span>:</b> {{data.surface}} {{data.surfaceUnit}}</li><li class="mpa-report-indicator"><b>Percentage of <span class="mpa-report-feature-source">{{metadata.title}}</span> in <span class="mpa-report-feature-target">{{target.name}}</span>: </b> {{data.indicator1}} %</li></ul></p>
+                </div>
+
+                <div class="mpa-report-feature-desc">
+                    <h4>Abstract:</h4>
+                    <p>
+                        {{metadata.description}}
+                    </p>
+                    
+                    <h4>Reference:</h4>
+                    <p>
+                        {{metadata.reference}}
+                    </p>
+                </div>
+                
+            </div>
+            
+            <div class="mpa-report-feature-map">
+                <div id="{{metadata.id}}-map" style="width:100%;height:100%;"></div>
+                <div
+            </div>
+           
+         </li>{{/features}}</ul>{{/features.length}}
+    </script>
+        
+    </div>
+    
+    <footer class="container-fluid">
+        <p class="col-xs-3">
+            v0.1
+        </p>
+        <p class="col-xs-6">
+            &copy; MPA-Web 2016
+        </p>
+        <p class="col-xs-3">
+            <a href="">Contact</a> &middot; <a href="">About</a> &middot; <a href="">Disclaimer</a>
+        </p>
+    </footer>
+</body>
+
+</html>

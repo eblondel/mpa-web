@@ -1,0 +1,75 @@
+.placeholder(@arguments) {
+    &::-webkit-input-placeholder {@arguments();}
+    &:-moz-placeholder {@arguments();}
+    &::-moz-placeholder {@arguments();}
+    &:-ms-input-placeholder {@arguments();}
+}
+
+.transition (@parameters) {
+	-webkit-transition: @parameters;  
+	-moz-transition:    @parameters;
+	-ms-transition:     @parameters; 
+	-o-transition:      @parameters;  
+}
+
+.translate3d (@parameters) {
+    -webkit-transform: translate3d(@parameters);
+    -moz-transform: translate3d(@parameters);
+    -ms-transform: translate3d(@parameters);
+    -o-transform: translate3d(@parameters);
+    transform: translate3d(@parameters);
+}
+
+.backfaceVisibility (@parameters) {
+    -webkit-backface-visibility: @parameters;
+    -moz-backface-visibility: @parameters;
+    -ms-backface-visibility: @parameters;
+    backface-visibility: @parameters;
+}
+
+.perspective (@parameters) {
+    -webkit-perspective: @parameters;
+    -moz-perspective: @parameters;
+    -ms-perspective: @parameters;
+    perspective: @parameters;
+}
+
+.font-smoothing {
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+.rotate (@deg) {
+	-webkit-transform:     rotate(@deg);
+	-moz-transform:        rotate(@deg);
+	-ms-transform:         rotate(@deg);
+	-o-transform:          rotate(@deg);
+}
+
+.gradient (@startColor: #eee, @endColor: white, @degNum, @degTextStart, @degTextEnd) {
+	background-color: mix(@startColor, @endColor);
+	background: -webkit-gradient(linear, @degTextStart, @degTextEnd, from(@startColor), to(@endColor));
+	background: -webkit-linear-gradient(@degNum, @startColor, @endColor);
+	background: -moz-linear-gradient(@degNum, @startColor, @endColor);
+	background: -ms-linear-gradient(@degNum, @startColor, @endColor);
+	background: -o-linear-gradient(@degNum, @startColor, @endColor);
+}
+
+.scale (@factor) {
+	-webkit-transform: scale(@factor);
+	-moz-transform: 	 scale(@factor);
+	-ms-transform: 		 scale(@factor);
+	-o-transform: 		 scale(@factor);
+}
+
+.hwa { // Hardware Acceleration
+    .translate3d (0%, 0%, 0%;) !important;
+    .backfaceVisibility (hidden) !important;
+    //.perspective (1000) !important;
+    will-change: all !important;
+}
+
+@keyframes rotate {
+    from {.rotate (360deg)}
+    to {.rotate (0deg)}
+}
