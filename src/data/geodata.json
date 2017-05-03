@@ -1,19 +1,19 @@
 [{
 	"id": "shelf",
 	"title": "Shelf",
-	"visible": true
+	"visible": false
 }, {
 	"id": "slope",
 	"title": "Slope",
-	"visible": true
+	"visible": false
 }, {
 	"id": "abyss",
 	"title": "Abyss",
-	"visible": true
+	"visible": false
 }, {
 	"id": "hadal",
 	"title": "Hadal",
-	"visible": true
+	"visible": false
 }, {
 	"id": "seamounts",
 	"title": "Seamounts",
