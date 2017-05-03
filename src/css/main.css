@@ -93,7 +93,6 @@
         
 #pageResults .content, #pageReports .content {
 	padding: 32px;
-	padding-bottom: 92px;
 }
             
 #mpaResults, #mpaReports {
@@ -323,6 +322,10 @@ table {
 #analyzer:hover {
         cursor: pointer;
         background-color: #E1E9EC;
+}
+
+#analyzer:disabled{
+	background-color: #EEEEEE !important;
 }
 
 /* ======== */
