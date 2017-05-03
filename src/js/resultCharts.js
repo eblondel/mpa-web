@@ -47,27 +47,19 @@ myApp.initResultsChart = function(data) {
             }
         },plotOptions: {
             column: {
-                stacking: 'normal'
+                stacking: 'normal',
             }
         },series: [{
             name: EEZ,
             data: dataDisplay[0],
-            stack: 'EEZ'
+            stack: 'EEZ',
+            color: '#7cb5ec'
         }, {
             name: AllMPAs,
             data: dataDisplay[1],
-            stack: 'feature'
+            stack: 'feature',
+            color: '#66c166'
         }]
     });
     
-    /*$('#mpaResultsCharts').append("<br /><br />");
-    $('#mpaResultsCharts').append("<i>devInfo:</i>");
-    $('#mpaResultsCharts').append("<br /><br />");
-    chartData = JSON.stringify(chartData);
-    $('#mpaResultsCharts').append(chartData);
-    
-    $('#mpaResultsCharts').append("<br /><br />");
-    
-    dataDisplay = JSON.stringify(dataDisplay);
-    $('#mpaResultsCharts').append(dataDisplay);*/
 };
