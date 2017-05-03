@@ -970,6 +970,7 @@ var myApp = myApp || {};
                 name: data.name,
                 type: data.type,
                 isMPA: data.type == "MPA",
+		isSingleMPA: data.name != "All MPAs" && data.type == "MPA",
                 surface: this.renderStatValue(data.surface, "surface"),
                 surfaceUnit: this.constants.SURFACE_UNIT.label,
                 target: this.processData.filter(function(row){if(row.type == "EEZ") return row})[0],
@@ -1016,6 +1017,21 @@ var myApp = myApp || {};
                     this_.report.featureType = targetLayer;
                     this_.report.filter = targetFilter;
                     this_.report.bbox = intersectFeatures.getExtent();
+		
+		    //additional fields
+		    if(this_.report.isMPA){
+			var mpa = intersectFeatures.getFeatures()[0];
+		    	this_.report.extraInfo = {
+			    wdpa_pid : mpa.get('wdpa_pid'),
+			    desig : mpa.get('desig'),
+			    desig_type : mpa.get('desig_type'),
+			    iucn_cat: mpa.get('iucn_cat'),
+			    status: mpa.get('status'),
+			    status_yr: mpa.get('status_yr'),
+			    gov_type: mpa.get('gov_type'),
+			    mang_auth: mpa.get('mang_auth')
+		    	}
+		    }
 
                     //hide report loader
                     $("#mpaReportLoader").hide(); 

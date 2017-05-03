@@ -149,7 +149,7 @@
                         
                     </div>
                     <div id="mpaResultsCharts"></div>
-                </div>
+                </div> 
             </div>
         </div>
 
@@ -172,9 +172,34 @@
     <script id="mpa-report-template1" type="x-tmpl-mustache">
         <h2 class="mpa-report-title">{{name}} <small class="mpa-report-location">{{type}}{{#isMPA}} - located in {{target.name}}{{/isMPA}}</small></h2>
         <p><b>Surface:</b> {{surface}} {{surfaceUnit}}</p>
-        <p><b>Geomorphic features:</b>
-         {{#features.length}}<ul>{{#features}}<li class="mpa-report-button"><input id="{{metadata.id}}-button" type="button" class="mpa-report-button" value="{{metadata.title}}" onclick="myApp.displayReport('{{metadata.id}}')"/></li>{{/features}}</ul>{{/features.length}}
-        </p>
+
+		
+	{{#isSingleMPA}}
+		<div style="display:block;overflow:auto;">
+			<p><b>MPA Characteristics:</b></p>
+			<ul style="float:left;">
+				<li>WDPA PID: <span class="mpa">{{extraInfo.wdpa_pid}}</span></li>
+				<li>Designation: <span class="mpa">{{extraInfo.desig}}</span></li>
+				<li>Designation Type: <span class="mpa">{{extraInfo.desig_type}}</span></li>
+				<li>IUCN Status: <span class="mpa">{{extraInfo.iucn_cat}}</span></li>
+			</ul>
+			<ul style="float:left;">
+				<li>Status: <span class="mpa">{{extraInfo.status}}</span></li>
+				<li>Year: <span class="mpa">{{extraInfo.status_yr}}</span></li>
+				<li>Governance: <span class="mpa">{{extraInfo.gov_type}}</span></li>
+				<li>Managing Authority: <span class="mpa">{{extraInfo.mang_auth}}</span></li>
+
+			</ul>	
+
+		</div>
+		
+	{{/isSingleMPA}}
+
+
+        <div>
+	   <p><b>Geomorphic features:</b></p>
+           {{#features.length}}<ul>{{#features}}<li class="mpa-report-button"><input id="{{metadata.id}}-button" type="button" class="mpa-report-button" value="{{metadata.title}}" onclick="myApp.displayReport('{{metadata.id}}')"/></li>{{/features}}</ul>{{/features.length}}
+        </div>
     </script>
     <!-- Feature report -->
     <script id="mpa-report-template2" type="x-tmpl-mustache">

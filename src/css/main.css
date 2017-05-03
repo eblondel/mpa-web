@@ -109,9 +109,10 @@ header, header * {
     display: none;
 }
 
-.mpa-web-version{
-	text-align: left;
+.mpa {
+	color: #66c166;
 }
+
 
 #logo {
     	height: 32px;
@@ -431,7 +432,7 @@ input.mpa-report-button.selected{
 .mpa-report-feature{
 	list-style:none;
 	padding:5px 10px;
-	height: 90%;
+	height: 80%;
 	box-sizing:border-box;
 	border: 1px solid white;
 	border-radius:8px;
