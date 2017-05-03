@@ -431,7 +431,7 @@ input.mpa-report-button.selected{
 .mpa-report-feature{
 	list-style:none;
 	padding:5px 10px;
-	height: 100%;
+	height: 90%;
 	box-sizing:border-box;
 	border: 1px solid white;
 	border-radius:8px;

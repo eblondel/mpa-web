@@ -1070,6 +1070,7 @@ var myApp = myApp || {};
             var mapId = trgGtype.id + "-map";
             this.featureMap = this.initMap(mapId, false, this.report.bbox);
             this.addGeomorphicFeatureLayer(trgGtype, false);
+	    this.addLayer(false, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
             this.addLayer(false, this.report.id, "MPA", this.report.featureType, this.report.filter)
         }
         
