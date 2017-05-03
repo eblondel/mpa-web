@@ -876,6 +876,8 @@ var myApp = myApp || {};
 						fixedColumnsLeft: 4
 					}
 				});
+                
+                $("#mpaResultsTable_info").remove();
 					
 				new $.fn.dataTable.FixedColumns( this_.table, {leftColumns: 4} );
                 

@@ -354,6 +354,10 @@ table {
 .mpa-timer{position: absolute;top: 50px;}
 .mpa-formatswitcher{margin:0 auto;}
 
+.dataTables_wrapper.no-footer .dataTables_scrollBody{
+    border-bottom: none;
+}
+
 /* Reporting */
 
 .mpa-report-button{
