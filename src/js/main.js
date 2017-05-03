@@ -1000,8 +1000,7 @@ var myApp = myApp || {};
             var intersectRequest = this.constants.OGC_WFS_BASEURL + "?version=1.0.0&request=GetFeature";
             var targetLayer = (this.report.type != "MPA")? this.areaFeatureType : this_.intersectFeatureType;
             intersectRequest += "&typeName=" + targetLayer;
-            intersectRequest += "&propertyName=the_geom";
-			intersectRequest += "&outputFormat=json";
+	    intersectRequest += "&outputFormat=json";
             intersectRequest += "&cql_filter=" + targetFilter;
             intersectRequest = encodeURI(intersectRequest);
             
