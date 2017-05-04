@@ -735,8 +735,8 @@ var myApp = myApp || {};
 					this_.processMetadata.end = t2;
 					
 					//process output data
-                    //Recent DataMiner nows handle logs as 1st Result, result is stored as 2d Result (!)
-					var dataUrl = $($(xml).find('Data')[2]).text();
+                    			//Recent DataMiner nows handle logs as 1st Result, result is stored as 2d Result (!)
+					var dataUrl = $($(xml).find('d4science\\:Data, Data')[1]).text();
 					this_.getWPSOutputData(dataUrl);	
 				},
 				error : function (xhr, ajaxOptions, thrownError){
@@ -744,10 +744,10 @@ var myApp = myApp || {};
 					$("#mpaResultsWrapper").append("<p><b>The MPA analysis returned an error...</b></p>");
 					$("#mpaResultsWrapper").append("<p style='color:red;'>GET Request '"+wpsRequest+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
-                    $("#areaTypeSelector").prop("disabled", false);
-                    $("#areaSelector").prop("disabled", false);
-                    $("#analyzer").attr("disabled",false);
-                    $("#mpaResultsLoader").hide();
+                    			$("#areaTypeSelector").prop("disabled", false);
+                    			$("#areaSelector").prop("disabled", false);
+                    			$("#analyzer").attr("disabled",false);
+                    			$("#mpaResultsLoader").hide();
 				}
 			});
 		}
