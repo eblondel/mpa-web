@@ -358,8 +358,8 @@ table {
     	margin-top: -10px;
     	margin-left: -250px;
 }
-#mpaResultsWrapper {
-    	height: 50% !important;
+#mpaResultWrapper {
+
 }
 #mpaResultsCharts {
     	display: none;
