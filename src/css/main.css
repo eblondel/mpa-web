@@ -92,7 +92,8 @@
 }
         
 #pageResults .content, #pageReports .content {
-	padding: 32px;
+	padding: 16px;
+	overflow-y: auto;
 }
             
 #mpaResults, #mpaReports {
@@ -107,6 +108,12 @@ header, header * {
 
 #mpa-web {
     display: none;
+}
+
+#mpaTitle {
+}
+#mpaSummary{
+	font-size:85%;
 }
 
 .mpa {
@@ -183,9 +190,9 @@ html, body {
 
 .sidebarContent {
         color: #fff;
-        padding: 16px;
+        padding: 8px;
         border-radius: 4px;
-        margin: 16px 0px;
+        margin: 0px;
         text-align: center;
 }
 
@@ -466,8 +473,14 @@ span.mpa-report-feature-target{
 	height: 100%;
     	float: left;
 }
-.mpa-report-feature-desc, .mpa-report-feature-stats{
+.mpa-report-feature-desc {
 	width:100%;
+    	height: 75%;
+    	overflow: auto;
+}
+.mpa-report-feature-stats{
+	width:100%;
+	height:10%;
 }
 .mpa-report-feature-map{
 	width:50%;
