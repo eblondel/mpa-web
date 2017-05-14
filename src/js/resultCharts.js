@@ -1,7 +1,32 @@
-myApp.initResultsChart = function(data) {
+myApp.initResultsChart = function() {
     'use strict';
     var this_ = this;
-    console.log(data);
+    
+    var statData = JSON.parse(JSON.stringify(this_.processData));
+	
+    var format = $('input[name=formatSwitcher]:checked').val();
+    if (format == "percentage") {
+
+	var roundFactor = Math.pow(10,this.constants.SURFACE_ROUND_DECIMALS);	
+
+	var refRow = this_.processData[0];
+	var colNames = Object.keys(refRow);
+	for(var i=0;i<colNames.length;i++){
+		var datacol = colNames[i];
+		if(["id", "name", "type"].indexOf(datacol) == -1){
+			for(var j=0;j<statData.length;j++){
+				var refValue = refRow[datacol];
+				var outValue = statData[j][datacol] / refValue * 100;
+                		outValue = Math.round(outValue * roundFactor) / roundFactor;
+				if(refValue == 0 || outValue == 0) outValue = "–";
+				statData[j][datacol] = outValue;
+			}
+		}
+	}
+    }
+
+    var data = [this_.columnNames, statData];
+
     var chartNames  = jQuery.extend([], data[0]);
     var chartData   = jQuery.extend([], data[1]);
     var dataDisplay = [[],[]];
@@ -22,7 +47,8 @@ myApp.initResultsChart = function(data) {
         delete chartData[i].type;
         
         $.each(chartData[i], function(index, value) {
-            dataDisplay[i].push(this_.renderStatValue(value, "surface"));
+		var value = (format == "surface")? this_.renderStatValue(value, "surface"): value;
+            	dataDisplay[i].push(value);
         });
     }
     
@@ -37,7 +63,7 @@ myApp.initResultsChart = function(data) {
             allowDecimals: false,
             min: 0,
             title: {
-                text: 'Area in square kilometers'
+                text: ((format == "percentage")? "Percentage of Area" : 'Area in square kilometers')
             }
         },tooltip: {
             formatter: function () {

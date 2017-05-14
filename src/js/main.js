@@ -112,10 +112,15 @@ var myApp = myApp || {};
 		},
         
         /**
-         * Utility to reload the stat table. Called on switching the format (% or surface) with the formatSwitcher
+         * Utility to reload the stats (table & graph). Called on switching the format (% or surface) with the formatSwitcher
          */
-        myApp.renderStatTable = function(){
-            this.table.rows().invalidate('data').draw(false);
+        myApp.renderStatistics = function(){
+		//render stat table
+	   	this.table.rows().invalidate('data').draw(false);
+
+		//render barchart
+		this.initResultsChart();
+		
         }
 	
 		// Security Token 
@@ -795,12 +800,12 @@ var myApp = myApp || {};
                     
 				//prepare dtColumns
 				var columns = Object.keys(this_.processData[0]);
-				var columnNames = ["id", "Name", "Type", "Area"];
+				this_.columnNames = ["id", "Name", "Type", "Area"];
 				if(typeof this_.geomorphicFeatures != "undefined"){
                         		for(var i=0;i<this_.geomorphicFeatures.length;i++){
                             			var gtype = this_.geomorphicFeatures[i];
                             			if(columns.indexOf(gtype.id) != - 1){
-                                			columnNames.push(gtype.title);
+                                			this_.columnNames.push(gtype.title);
                             			}
                        			}
 				}
@@ -809,13 +814,12 @@ var myApp = myApp || {};
 				//html markup
                 //-----------
 				var tableHeaders = '';
-				$.each(columnNames, function(i, val){
+				$.each(this_.columnNames, function(i, val){
 					tableHeaders += "<th>" + val + "</th>";
 				});
                 
-                // Initialize Highcharts.
-                var chartData = [columnNames, this_.processData];
-                this_.initResultsChart(chartData);
+                // Initialize Highcharts
+                this_.initResultsChart();
 					
                 //timer
 				var timer = (this_.processMetadata.end - this_.processMetadata.start) / 1000;
@@ -824,8 +828,8 @@ var myApp = myApp || {};
                     
 			   	//value format (absolute value or %)
 				var formatSwitcherHtml = '<table class="mpa-formatswitcher"><tr>';
-                formatSwitcherHtml += '<td><input type="radio" name="formatSwitcher" value="surface" checked onclick="myApp.renderStatTable()">Surface (km²)</td>';
-				formatSwitcherHtml += '<td><input type="radio" name="formatSwitcher" value="percentage" onclick="myApp.renderStatTable()">% of geomorphic feature</td>';
+                formatSwitcherHtml += '<td><input type="radio" name="formatSwitcher" value="surface" checked onclick="myApp.renderStatistics()">Surface (km²)</td>';
+				formatSwitcherHtml += '<td><input type="radio" name="formatSwitcher" value="percentage" onclick="myApp.renderStatistics()">% of geomorphic feature</td>';
 				formatSwitcherHtml += '</tr></table>';
 				$("#mpaResultsWrapper").append(formatSwitcherHtml);
 					
