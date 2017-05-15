@@ -166,7 +166,7 @@ var myApp = myApp || {};
                 
                     //get abstract information
                     var mdAbstract = "";
-                    var xml_abstract = $(xml).find("abstract");
+                    var xml_abstract = $(xml).find("gmd\\:abstract, abstract");
                     if(xml_abstract.length > 0){
                        mdAbstract = this_.sanitizeMetadataElement(xml_abstract[0].textContent);
                     }else{
@@ -175,7 +175,7 @@ var myApp = myApp || {};
                     
                     //get citation information
                     var mdCitation = "";
-                    var xml_citation = $(xml).find("credit");
+                    var xml_citation = $(xml).find("gmd\\:credit, credit");
                     if(xml_citation.length > 0){
                         mdCitation = this_.sanitizeMetadataElement(xml_citation[0].textContent);
                     }else{
