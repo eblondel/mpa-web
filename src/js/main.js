@@ -22,8 +22,8 @@ var myApp = myApp || {};
             ZOOM: 3,
             OGC_WMS_NS: "W_mpa",
             OGC_WMS_SUFFIX: "geo_fea_",
-			OGC_WMS_BASEURL: "https://geoserver.d4science.org/geoserver/wms",
-			OGC_WFS_BASEURL: "https://geoserver.d4science.org/geoserver/wfs",
+			OGC_WMS_BASEURL: "https://geoserver-dev.d4science-ii.research-infrastructures.eu/geoserver/wms",
+			OGC_WFS_BASEURL: "https://geoserver-dev.d4science-ii.research-infrastructures.eu/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			//OGC_WFS_BBOX: [-180, -90, 180, 90],
             OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
@@ -363,13 +363,15 @@ var myApp = myApp || {};
 		}
 		
         /**
-		 * Adds  layer
-		 * @param id
+	 * Adds  layer
+	 * @param main (true/false)
+	 * @param mainOverlayGroup
+	 * @param id
          * @param title
          * @param layer
          * @param cql_filter
 		 */
-		myApp.addLayer = function(main, id, title, layer, cql_filter){
+		myApp.addLayer = function(main, mainOverlayGroup, id, title, layer, cql_filter){
 			var layer = new ol.layer.Tile({
 				id : id,
 				title : title,
@@ -391,11 +393,16 @@ var myApp = myApp || {};
 			});
 			this.setLegendGraphic(layer);
 			layer.showLegendGraphic = true;
-            layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[0];
+            
 			
             if(main){
-                this.overlays[0].getLayers().push(layer);
+		if(mainOverlayGroup > this.overlays.length-1){
+			alert("Overlay group with index " + mainOverlayGroup + " doesn't exist");
+		}
+		layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[mainOverlayGroup];
+                this.overlays[mainOverlayGroup].getLayers().push(layer);
             }else{
+		layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[0];
                 this.featureMap.getLayers().push(layer);
             }
 		}
@@ -1090,8 +1097,8 @@ var myApp = myApp || {};
             var mapId = trgGtype.id + "-map";
             this.featureMap = this.initMap(mapId, false, this.report.bbox);
             this.addGeomorphicFeatureLayer(trgGtype, false);
-	    this.addLayer(false, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
-            this.addLayer(false, this.report.id, "MPA", this.report.featureType, this.report.filter)
+	    this.addLayer(false, 0, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
+            this.addLayer(false, 0, this.report.id, "MPA", this.report.featureType, this.report.filter);
         }
         
         /**
@@ -1100,6 +1107,11 @@ var myApp = myApp || {};
         myApp.configureViewer = function(){
             var this_ = this;
             this_.map = this_.initMap('map', true, false);
+
+    	    //add MPA layer
+	    var mpaLayerId = "W_mpa:mpa_original";
+	    this_.addLayer(true, 1, "allmpas", "Marine Protected Areas", mpaLayerId);
+
             
             //default selector
             this_.configureMapSelector("EEZ");
