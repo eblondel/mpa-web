@@ -500,6 +500,15 @@ span.mpa-report-feature-target{
 	list-style:none;
 }
 
+ul.sources {
+    list-style-type: none;
+    font-size: 85%;
+}
+
+ul.sources li{
+    padding-bottom:4px;
+}
+
 /* START OF FOOTER */
 footer {
     position: absolute;
