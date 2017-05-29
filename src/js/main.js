@@ -982,6 +982,7 @@ var myApp = myApp || {};
                 type: data.type,
                 isMPA: data.type == "MPA",
 		isSingleMPA: data.name != "All MPAs" && data.type == "MPA",
+		isEEZ: data.type == "EEZ",
                 surface: this.renderStatValue(data.surface, "surface"),
                 surfaceUnit: this.constants.SURFACE_UNIT.label,
                 target: this.processData.filter(function(row){if(row.type == "EEZ") return row})[0],

@@ -173,7 +173,15 @@
     <script id="mpa-report-template1" type="x-tmpl-mustache">
         <h2 class="mpa-report-title">{{name}} <small class="mpa-report-location">{{type}}{{#isMPA}} - located in {{target.name}}{{/isMPA}}</small></h2>
         <p><b>Surface:</b> {{surface}} {{surfaceUnit}}</p>
-
+        
+    {{#isEEZ}}
+           <div style="display:block;overflow:auto;">
+            <p><b>Sources:</b></p>
+            <ul class="sources">
+                <li>Exclusive Economic Zones: Flanders Marine Institute (2016). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 9. Available online <a href="http://www.marineregions.org/" target="_blank">here</a>.</li>
+            </ul>
+		</div>
+    {{/isEEZ}}
 		
 	{{#isSingleMPA}}
 		<div style="display:block;overflow:auto;">
@@ -191,6 +199,8 @@
 				<li>Managing Authority: <span class="mpa">{{extraInfo.mang_auth}}</span></li>
 			</ul>
        </div>
+    {{/isSingleMPA}}
+    {{#isMPA}}
        <div>
             <p><b>Sources:</b></p>
             <ul class="sources">
@@ -198,10 +208,9 @@
                 <li>Exclusive Economic Zones: Flanders Marine Institute (2016). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 9. Available online <a href="http://www.marineregions.org/" target="_blank">here</a>.</li>
             </ul>
 		</div>
-		
-	{{/isSingleMPA}}
-
-
+	{{/isMPA}}	
+	
+    
         <div>
 	   <p><b>Geomorphic features:</b></p>
            {{#features.length}}<ul>{{#features}}<li class="mpa-report-button"><input id="{{metadata.id}}-button" type="button" class="mpa-report-button" value="{{metadata.title}}" onclick="myApp.displayReport('{{metadata.id}}')"/></li>{{/features}}</ul>{{/features.length}}
