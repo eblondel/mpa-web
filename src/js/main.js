@@ -29,7 +29,7 @@ var myApp = myApp || {};
             OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
 			OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V2",
 			OGC_WPS_OUTPUTDATA_HTTPS: true,
-            OGC_CSW_BASEURL: "https://geonetwork1-d-d4s.d4science.org/geonetwork/srv/eng/csw",
+            OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
             DEBUG_REPORTING: false
