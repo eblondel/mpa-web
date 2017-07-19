@@ -509,6 +509,29 @@ ul.sources li{
     padding-bottom:4px;
 }
 
+/** PDF **/
+
+
+.mpaResultsTable-pdf-button {
+    position: absolute;
+    top: 0px;
+    padding: 0px;
+    border: none;
+    width: 40px;
+    height: 40px;
+    margin-top: 10px;
+    background-image: url(../img/pdf-icon-red.png);
+    background-size: 40px 40px;
+    background-repeat: no-repeat;
+    background-color:transparent;
+    opacity:0.7;
+}
+
+.mpaResultsTable-pdf-button:hover{
+    opacity:1;
+}
+
+
 /* START OF FOOTER */
 footer {
     position: absolute;

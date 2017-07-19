@@ -16,23 +16,24 @@ var myApp = myApp || {};
 		//constants
 		//===========================================================================================
 		myApp.constants = {
-			PUBLIC_TOKEN: "4c1eb64a-45dc-46df-89b6-811ed0f9ff21-843339462",
+			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
 			OVERLAY_GROUP_NAMES: [{name: "Geomorphic features"},{name: "Base overlays"}],
-            ZOOM: 3,
-            OGC_WMS_NS: "W_mpa",
-            OGC_WMS_SUFFIX: "geo_fea_",
-			OGC_WMS_BASEURL: "https://geoserver.d4science.org/geoserver/wms",
-			OGC_WFS_BASEURL: "https://geoserver.d4science.org/geoserver/wfs",
+            		ZOOM: 3,
+            		OGC_WMS_NS: "W_mpa",
+            		OGC_WMS_SUFFIX: "geo_fea_",
+			OGC_WMS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wms",
+			OGC_WFS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			//OGC_WFS_BBOX: [-180, -90, 180, 90],
-            OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+           		OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
 			OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V2",
 			OGC_WPS_OUTPUTDATA_HTTPS: true,
-            OGC_CSW_BASEURL: "https://geonetwork1-d-d4s.d4science.org/geonetwork/srv/eng/csw",
+            		OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
+			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
 			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
-            DEBUG_REPORTING: false
+            		DEBUG_REPORTING: false
 		}
 		
 		//Utils
@@ -76,52 +77,70 @@ var myApp = myApp || {};
 			}
 		  }
 		  return obj;
-		}		
+		}
+
+		/**
+ 		 * Fetch User profile
+		 */
+		myApp.fetchUserProfile = function(){
+			var this_ = this;
+            		var request =  this.constants.D4S_SOCIALNETWORKING_BASEURL + "/people/profile?gcube-token=" + this.securityToken;
+            		console.log("Fetching user profile");
+            		console.log(request);
+
+            		$.ajax({ 
+				url: request,
+                		contentType: 'application/json',
+    				type: 'GET',
+    				success: function (response) {
+        				this_.userProfile = response.result;  
+  				}     
+	                });
+        	}
 		
 		/**
 		 * Utility to render a statistical value after conversion and rounding
 		 * @param value to render
-         * @param format value "surface" or "percentage". The percentage corresponds to the % of geomorphic feature
-         *             (only in the given EEZ) covered by the MPA (or all MPAs)
-         * @param meta an metadata object as defined in DataTable API (see https://datatables.net/reference/option/columns.render)
-         *             used to inherit column information (required to apply percentage format)
+         	 * @param format value "surface" or "percentage". The percentage corresponds to the % of geomorphic feature
+         	 *             (only in the given EEZ) covered by the MPA (or all MPAs)
+         	 * @param meta an metadata object as defined in DataTable API (see https://datatables.net/reference/option/columns.render)
+         	 *             used to inherit column information (required to apply percentage format)
 		 * @returns the rendered value
 		 */
 		myApp.renderStatValue = function(value, format, meta){
         
-            var roundFactor = Math.pow(10,this.constants.SURFACE_ROUND_DECIMALS);
+            		var roundFactor = Math.pow(10,this.constants.SURFACE_ROUND_DECIMALS);
         
-            if(format == "percentage"){
-                refRow = this.processData[0]
-                refValue = refRow[Object.keys(refRow)[meta.col]]
-                outValue = value / refValue * 100;
-                outValue = Math.round(outValue * roundFactor) / roundFactor;
-                if(refValue == 0 || outValue == 0) outValue = "–";
-            }else if(format == "surface"){
-                var factor = 1;
-                switch(this.constants.SURFACE_UNIT.id){
-                    case "sqkm": factor = 1e-6;break;
-                    case "ha": factor = 1e-4;break;
-                    default: factor = 1; break;
-                }
-                outValue = Math.round(value * factor * roundFactor) / roundFactor;
-                if(outValue == 0) outValue = "–";
-            }
+            		if(format == "percentage"){
+                		refRow = this.processData[0]
+                		refValue = refRow[Object.keys(refRow)[meta.col]]
+                		outValue = value / refValue * 100;
+                		outValue = Math.round(outValue * roundFactor) / roundFactor;
+                		if(refValue == 0 || outValue == 0) outValue = "–";
+            		}else if(format == "surface"){
+                		var factor = 1;
+                		switch(this.constants.SURFACE_UNIT.id){
+                    			case "sqkm": factor = 1e-6;break;
+                    			case "ha": factor = 1e-4;break;
+                    			default: factor = 1; break;
+                		}
+                		outValue = Math.round(value * factor * roundFactor) / roundFactor;
+                		if(outValue == 0) outValue = "–";
+            		}
 			return outValue;
             
 		},
         
-        /**
-         * Utility to reload the stats (table & graph). Called on switching the format (% or surface) with the formatSwitcher
-         */
-        myApp.renderStatistics = function(){
-		//render stat table
-	   	this.table.rows().invalidate('data').draw(false);
+        	/**
+         	 * Utility to reload the stats (table & graph). Called on switching the format (% or surface) with the formatSwitcher
+        	 */
+        	myApp.renderStatistics = function(){
+			//render stat table
+		   	this.table.rows().invalidate('data').draw(false);
 
-		//render barchart
-		this.initResultsChart();
-		
-        }
+			//render barchart
+			this.initResultsChart();
+        	}
 	
 		// Security Token 
 		//===========================================================================================
@@ -144,77 +163,77 @@ var myApp = myApp || {};
 		//Geomorphic Features
 		//==========================================================================================
 		myApp.sanitizeMetadataElement = function(str){
-            str = str.replace(/\s{2,}/g, ' ');
-            str = str.replace(/(\r\n|\n|\r)/gm, "");
-            return str;
-        }
+            		str = str.replace(/\s{2,}/g, ' ');
+            		str = str.replace(/(\r\n|\n|\r)/gm, "");
+            		return str;
+        	}
         
-        myApp.fetchGeomorphicFeatureMetadata = function(metadataId){
-            var this_ = this;
-            var deferred = $.Deferred();
-            var request =  this.constants.OGC_CSW_BASEURL + "?service=CSW&request=GetRecordById&Version=2.0.2";
-            request += "&outputSchema=http%3A//www.isotc211.org/2005/gmd";
-            request += "&elementSetName=full";
-            request += "&id=" + metadataId;
-            console.log("Performing CSW GetRecord metadata request");
-            console.log(request);
-            $.ajax({ 
-                type: 'GET',
-                url: request,
-                contentType: 'application/json',
-                success: function(xml){
+        	myApp.fetchGeomorphicFeatureMetadata = function(metadataId){
+            		var this_ = this;
+            		var deferred = $.Deferred();
+            		var request =  this.constants.OGC_CSW_BASEURL + "?service=CSW&request=GetRecordById&Version=2.0.2";
+            		request += "&outputSchema=http%3A//www.isotc211.org/2005/gmd";
+            		request += "&elementSetName=full";
+            		request += "&id=" + metadataId;
+            		console.log("Performing CSW GetRecord metadata request");
+            		console.log(request);
+            		$.ajax({ 
+            		    	type: 'GET',
+             		   	url: request,
+                		contentType: 'application/json',
+                		success: function(xml){
                 
-                    //get abstract information
-                    var mdAbstract = "";
-                    var xml_abstract = $(xml).find("gmd\\:abstract, abstract");
-                    if(xml_abstract.length > 0){
-                       mdAbstract = this_.sanitizeMetadataElement(xml_abstract[0].textContent);
-                    }else{
-                        mdAbstract = "No abstract available";
-                    }
+                    		//get abstract information
+                    		var mdAbstract = "";
+                    		var xml_abstract = $(xml).find("gmd\\:abstract, abstract");
+                    		if(xml_abstract.length > 0){
+                       			mdAbstract = this_.sanitizeMetadataElement(xml_abstract[0].textContent);
+                    		}else{
+                        		mdAbstract = "No abstract available";
+                    		}
                     
-                    //get citation information
-                    var mdCitation = "";
-                    var xml_citation = $(xml).find("gmd\\:credit, credit");
-                    if(xml_citation.length > 0){
-                        mdCitation = this_.sanitizeMetadataElement(xml_citation[0].textContent);
-                    }else{
-                        mdCitation = "No reference available";
-                    }
+                    		//get citation information
+                    		var mdCitation = "";
+                    		var xml_citation = $(xml).find("gmd\\:credit, credit");
+                    		if(xml_citation.length > 0){
+                    		    mdCitation = this_.sanitizeMetadataElement(xml_citation[0].textContent);
+                    		}else{
+                    		    mdCitation = "No reference available";
+                   		 }
                     
-                    for(var i=0;i<this_.geomorphicFeatures.length;i++){
-                        var id = metadataId.split("geo_fea_")[1];
-                        if(this_.geomorphicFeatures[i].id === id){
-                            this_.geomorphicFeatures[i]["description"] = mdAbstract;
-                            this_.geomorphicFeatures[i]["reference"] = mdCitation;
-                            break;
-                        }
-                    }
+                    		for(var i=0;i<this_.geomorphicFeatures.length;i++){
+                    		    var id = metadataId.split("geo_fea_")[1];
+                    		    if(this_.geomorphicFeatures[i].id === id){
+                     		       this_.geomorphicFeatures[i]["description"] = mdAbstract;
+                     		       this_.geomorphicFeatures[i]["reference"] = mdCitation;
+                     		       break;
+                      		  }
+                    		}
                     
-                    deferred.resolve();
-                }
-            });
-            return deferred.promise();
-        }
+                    		deferred.resolve();
+                		}
+            		});
+            		return deferred.promise();
+        	}
         
-        myApp.fetchGeomorphicFeatures = function(){
+        	myApp.fetchGeomorphicFeatures = function(){
         
-            var deferred = $.Deferred();
+            		var deferred = $.Deferred();
         
 			var this_ = this;
 			$.getJSON(this.constants.GEO_DATA, function(data){
 				this_.geomorphicFeatures = data;
-                var promises = new Array();
-                for(var i=0;i<data.length;i++){
-                    var metadataId = this_.constants.OGC_WMS_SUFFIX + data[i].id;
-                    promises.push(this_.fetchGeomorphicFeatureMetadata(metadataId));
-                }
-                $.when(promises).done(function(){
-                    deferred.resolve(this_.geomorphicFeatures);
-                });
+                		var promises = new Array();
+                		for(var i=0;i<data.length;i++){
+                		    var metadataId = this_.constants.OGC_WMS_SUFFIX + data[i].id;
+                		    promises.push(this_.fetchGeomorphicFeatureMetadata(metadataId));
+                		}
+                		$.when(promises).done(function(){
+                		    deferred.resolve(this_.geomorphicFeatures);
+                		});
 			});
             
-            return deferred.promise();
+            		return deferred.promise();
 		}
 		
 		//Area type selector
@@ -241,7 +260,7 @@ var myApp = myApp || {};
 		 */
 		myApp.initMap = function(id, main, extent){
         
-            var map;
+            		var map;
             
 			//baselayers
 			var baseLayers = [
@@ -260,8 +279,9 @@ var myApp = myApp || {};
 									})
 								],
 								//url : 'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}'
-                                url : '//server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
-                            })
+                                				url : '//server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+								crossOrigin: 'anonymous'
+                            				})
 						})
 					]
 				})
@@ -283,22 +303,22 @@ var myApp = myApp || {};
 			var defaultMapExtent = ((this.constants.OGC_WFS_BBOX)? this.constants.OGC_WFS_BBOX : [-180, -90, 180, 90]);
 			var defaultMapZoom = ((this.constants.OGC_WFS_BBOX)? 5 : 2);
             
-            if(main){
-                this.baseLayers = baseLayers;
-                this.geomorphicLayers = geomorphicLayers;
-                this.baseOverlays = baseOverlays;
-                this.overlays = overlays;
-                this.defaultMapExtent = defaultMapExtent,
-                this.defaultMapZoom = defaultMapZoom;
-            }     
+            		if(main){
+                		this.baseLayers = baseLayers;
+                		this.geomorphicLayers = geomorphicLayers;
+                		this.baseOverlays = baseOverlays;
+                		this.overlays = overlays;
+                		this.defaultMapExtent = defaultMapExtent,
+                		this.defaultMapZoom = defaultMapZoom;
+            		}     
         
 			//map
-            var mapId = id? id : 'map';
+            		var mapId = id? id : 'map';
 			$("#"+mapId).empty();
 			var map = new ol.Map(
 				{
 					id: mapId,
-                    target : mapId,
+                    			target : mapId,
 					layers : baseLayers.concat(overlays),
 					view : new ol.View({
 						projection : 'EPSG:4326',
@@ -317,24 +337,24 @@ var myApp = myApp || {};
 				zoom	: defaultMapZoom
 			} ));
             
-            if(main){
-                map.addControl( new ol.control.LayerSwitcher({
-                    target: "layerswitcher",
-                    displayLegend: true,
-                    collapsableGroups : true,
-                    overlayGroups : this.constants.OVERLAY_GROUP_NAMES
-                }));
-            }       
+            		if(main){
+                		map.addControl( new ol.control.LayerSwitcher({
+                    			target: "layerswitcher",
+                    			displayLegend: true,
+                    			collapsableGroups : true,
+                    			overlayGroups : this.constants.OVERLAY_GROUP_NAMES
+                		}));
+            		}       
                         
-            if(extent){
-                map.getView().fit(extent, map.getSize());
-            }
+            		if(extent){
+             		   map.getView().fit(extent, map.getSize());
+            		}
             
-            if(main && this.constants.ZOOM){
-                map.getView().setZoom(this.constants.ZOOM);
-            }
+            		if(main && this.constants.ZOOM){
+            		    map.getView().setZoom(this.constants.ZOOM);
+            		}
             
-            return map;
+            		return map;
 		}
 		
 		/**
@@ -362,14 +382,14 @@ var myApp = myApp || {};
 			lyr.legendGraphic = request;
 		}
 		
-        /**
-	 * Adds  layer
-	 * @param main (true/false)
-	 * @param mainOverlayGroup
-	 * @param id
-         * @param title
-         * @param layer
-         * @param cql_filter
+        	/**
+		 * Adds  layer
+		 * @param main (true/false)
+		 * @param mainOverlayGroup
+		 * @param id
+        	 * @param title
+        	 * @param layer
+       		 * @param cql_filter
 		 */
 		myApp.addLayer = function(main, mainOverlayGroup, id, title, layer, cql_filter){
 			var layer = new ol.layer.Tile({
@@ -386,7 +406,8 @@ var myApp = myApp || {};
                             'CQL_FILTER': cql_filter
 					},
 					wrapX: true,
-					serverType : 'geoserver'
+					serverType : 'geoserver',
+					crossOrigin: 'anonymous'
 				}),
 				opacity : 0.8,
 				visible : true
@@ -395,16 +416,16 @@ var myApp = myApp || {};
 			layer.showLegendGraphic = true;
             
 			
-            if(main){
-		if(mainOverlayGroup > this.overlays.length-1){
-			alert("Overlay group with index " + mainOverlayGroup + " doesn't exist");
-		}
-		layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[mainOverlayGroup];
-                this.overlays[mainOverlayGroup].getLayers().push(layer);
-            }else{
-		layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[0];
-                this.featureMap.getLayers().push(layer);
-            }
+            		if(main){
+				if(mainOverlayGroup > this.overlays.length-1){
+					alert("Overlay group with index " + mainOverlayGroup + " doesn't exist");
+				}
+				layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[mainOverlayGroup];
+               		 	this.overlays[mainOverlayGroup].getLayers().push(layer);
+            		}else{
+				layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[0];
+               			this.featureMap.getLayers().push(layer);
+            		}
 		}
         
 		/**
@@ -425,7 +446,8 @@ var myApp = myApp || {};
 							'TILESORIGIN' : [-180,-90].join(',')
 					},
 					wrapX: true,
-					serverType : 'geoserver'
+					serverType : 'geoserver',
+					crossOrigin: 'anonymous'
 				}),
 				opacity : 0.8,
 				visible : (main? gfeature.visible : true)
@@ -434,11 +456,11 @@ var myApp = myApp || {};
 			layer.showLegendGraphic = true;
 			layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[0];
             
-            if(main){
-                this.overlays[0].getLayers().push(layer);
-            }else{
-                this.featureMap.getLayers().push(layer);
-            }
+            		if(main){
+                		this.overlays[0].getLayers().push(layer);
+            		}else{
+               		 	this.featureMap.getLayers().push(layer);
+            		}
             
 		}
 		
@@ -490,7 +512,7 @@ var myApp = myApp || {};
 			this_.$areaTypeSelector.trigger('change');
 			
 			$("#areaSelector").empty();
-           // $("#areaSelector").select2('data', null);
+           		// $("#areaSelector").select2('data', null);
 			
 			$("#areaSelectorWrapper").hide();
 			$("#areaSelectorLoader").show();
@@ -723,9 +745,9 @@ var myApp = myApp || {};
 			$('#mpaTabs').tabs( "option", "active", 0 ); //go to table
 		
 			$("#mpaResultsWrapper").show();
-            $("#mpaResultsCharts").show();
+            		$("#mpaResultsCharts").show();
 			$("#mpaResultsWrapper").empty();
-            $("#mpaResultsCharts").empty();
+            		$("#mpaResultsCharts").empty();
 			$("#mpaResultsLoader").show();
 					
 			//building WPS GET request
@@ -782,19 +804,19 @@ var myApp = myApp || {};
 				url: url,
 				success: function(response){
             
-                //results
-                //-------
+                		//results
+                		//-------
 				var results = JSON.parse(response);
 				this_.processData = new Array();
                     
-                //explicit order by non-MPA (EEZ or ECOREGION), then All MPAs, then each MPA
+                		//explicit order by non-MPA (EEZ or ECOREGION), then All MPAs, then each MPA
 				this_.processData = this_.processData.concat(results.filter(function(row){if(row.type != "MPA") return row}));
 				this_.processData = this_.processData.concat(results.filter(function(row){if(row.name == "All MPAs") return row}));
-                var mpas = results.filter(function(row){if(row.type == "MPA" & row.name != "All MPAs") return row});
-                mpas.sort(function(a,b) {return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);} ); 
+                		var mpas = results.filter(function(row){if(row.type == "MPA" & row.name != "All MPAs") return row});
+                		mpas.sort(function(a,b) {return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);} ); 
 				this_.processData = this_.processData.concat(mpas);		
 					
-                //remove empty columns
+                		//remove empty columns
 				var keys = Object.keys(this_.processData[0]);
 				for(key in keys){
 					var keyname = keys[key];
@@ -819,28 +841,31 @@ var myApp = myApp || {};
                     
 
 				//html markup
-                //-----------
+                		//-----------
 				var tableHeaders = '';
 				$.each(this_.columnNames, function(i, val){
 					tableHeaders += "<th>" + val + "</th>";
 				});
                 
-                // Initialize Highcharts
-                this_.initResultsChart();
+                		// Initialize Highcharts
+                		this_.initResultsChart();
 					
-                //timer
+                		//timer
 				var timer = (this_.processMetadata.end - this_.processMetadata.start) / 1000;
 				var timerHtml = '<p class="mpa-timer">MPA analysis performed in '+timer+' seconds!</p>';
 				$("#mpaResultsWrapper").append(timerHtml);
                     
 			   	//value format (absolute value or %)
 				var formatSwitcherHtml = '<table class="mpa-formatswitcher"><tr>';
-                formatSwitcherHtml += '<td><input type="radio" name="formatSwitcher" value="surface" checked onclick="myApp.renderStatistics()">Surface (km²)</td>';
-				formatSwitcherHtml += '<td><input type="radio" name="formatSwitcher" value="percentage" onclick="myApp.renderStatistics()">% of geomorphic feature</td>';
+                		formatSwitcherHtml += '<td><input id="surfaceSwitcher" type="radio" name="formatSwitcher" value="surface" checked onclick="myApp.renderStatistics()">Surface (km²)</td>';
+				formatSwitcherHtml += '<td><input id = "percentSwitcher" type="radio" name="formatSwitcher" value="percentage" onclick="myApp.renderStatistics()">% of geomorphic feature</td>';
 				formatSwitcherHtml += '</tr></table>';
 				$("#mpaResultsWrapper").append(formatSwitcherHtml);
+
+				var pdfExportTable = '<button type="button" class="mpaResultsTable-pdf-button" title="Download Results as PDF" onclick="myApp.printResults()"></button>';
+				$("#mpaResultsWrapper").append(pdfExportTable);
 					
-                //results table
+                		//results table
 				var resultsTable = '<table id="mpaResultsTable" class="stripe row-border order-column" cellspacing="0" style="width:100%;"><thead><tr>' + tableHeaders + '</tr></thead></table>';
 				$("#mpaResultsWrapper").append(resultsTable);
 
@@ -888,12 +913,12 @@ var myApp = myApp || {};
 					}
 				});
                 
-                $("#mpaResultsTable_info").remove();
+                		$("#mpaResultsTable_info").remove();
 					
 				new $.fn.dataTable.FixedColumns( this_.table, {leftColumns: 4} );
                 
-                //$(".sorting:contains('Name')").trigger("click");
-                //$(".sorting:contains('Area')").trigger("click");
+                		//$(".sorting:contains('Name')").trigger("click");
+                		//$(".sorting:contains('Area')").trigger("click");
                 
 				},
 				error : function (xhr, ajaxOptions, thrownError){
@@ -901,9 +926,9 @@ var myApp = myApp || {};
 					$("#mpaResultsWrapper").append("<p>The MPA analysis returned an error...</p>");
 					$("#mpaResultsWrapper").append("<p style='color:red;'>GET Request '"+url+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
-                    $("#areaTypeSelector").prop("disabled", false);
-                    $("#areaSelector").prop("disabled", false);
-                    $("#analyzer").attr("disabled",false);
+                    			$("#areaTypeSelector").prop("disabled", false);
+                    			$("#areaSelector").prop("disabled", false);
+                    			$("#analyzer").attr("disabled",false);
 				}
 			});
 		}
@@ -929,7 +954,7 @@ var myApp = myApp || {};
 
 		/**
 		 * Function to get a WMS Get Map request to load in a feature report
-         * @Deprecated now handled with a dynamic Map
+        	 * @Deprecated now handled with a dynamic Map
 		 * @param areaId the area numeric id (MPA id or EEZ id, or '0' for All MPAs)
 		 * @param featureLayer
 		 * @returns an url
@@ -966,196 +991,250 @@ var myApp = myApp || {};
 		 * @param id the id of the area
 		 */
 		myApp.accessReports = function(id){
-            var this_ = this;
+            		var this_ = this;
             
-            //go to report tab
-            $("nav li[data-where='#pageReports']").trigger("click");
-            $("#mpaReportMainWrapper").empty();
-            $("#mpaReportFeatureWrapper").empty();
-            $("#mpaReportLoader").show(); //show loader (until WFS request is fetched)
+            		//go to report tab
+            		$("nav li[data-where='#pageReports']").trigger("click");
+            		$("#mpaReportMainWrapper").empty();
+            		$("#mpaReportFeatureWrapper").empty();
+            		$("#mpaReportLoader").show(); //show loader (until WFS request is fetched)
             
-            //report object preparation
-            var data = this.processData.filter(function(row){if(row.id === String(id)) return row})[0];
-            this.report = {
-                id : data.id,
-                name: data.name,
-                type: data.type,
-                isMPA: data.type == "MPA",
-		isSingleMPA: data.name != "All MPAs" && data.type == "MPA",
-		isEEZ: data.type == "EEZ",
-                surface: this.renderStatValue(data.surface, "surface"),
-                surfaceUnit: this.constants.SURFACE_UNIT.label,
-                target: this.processData.filter(function(row){if(row.type == "EEZ") return row})[0],
-                features: []
-            }
-            for(var i=0;i<this.geomorphicFeatures.length;i++){
-                var surface = data[this.geomorphicFeatures[i].id];
-                if(surface > 0){
-                    var targetSurface = this.report.target[this.geomorphicFeatures[i].id];
-                    var featureReport = {
-                        metadata: this.geomorphicFeatures[i],
-                        data: {
-                            surface: this.renderStatValue(surface, "surface"),
-                            surfaceUnit: this.constants.SURFACE_UNIT.label,
-                            indicator1: Math.round(surface / targetSurface * 100 * 100) / 100,
-                            map: this.getFeatureReportMap(this.report.id, this.geomorphicFeatures[i].layer)
-                        }
-                    }
-                    this.report.features.push(featureReport);
-                }
-            }
+            		//report object preparation
+            		var data = this.processData.filter(function(row){if(row.id === String(id)) return row})[0];
+            		this.report = {
+                		id : data.id,
+                		name: data.name,
+                		type: data.type,
+                		isMPA: data.type == "MPA",
+				isSingleMPA: data.name != "All MPAs" && data.type == "MPA",
+				isEEZ: data.type == "EEZ",
+                		surface: this.renderStatValue(data.surface, "surface"),
+                		surfaceUnit: this.constants.SURFACE_UNIT.label,
+                		target: this.processData.filter(function(row){if(row.type == "EEZ") return row})[0],
+                		features: []
+            		}
+            		for(var i=0;i<this.geomorphicFeatures.length;i++){
+                		var surface = data[this.geomorphicFeatures[i].id];
+                		if(surface > 0){
+                    			var targetSurface = this.report.target[this.geomorphicFeatures[i].id];
+                    			var featureReport = {
+                       		 		metadata: this.geomorphicFeatures[i],
+                        			data: {
+                            				surface: this.renderStatValue(surface, "surface"),
+                            				surfaceUnit: this.constants.SURFACE_UNIT.label,
+                            				indicator1: Math.round(surface / targetSurface * 100 * 100) / 100,
+                            				map: this.getFeatureReportMap(this.report.id, this.geomorphicFeatures[i].layer)
+                        			}
+                    			}
+                    			this.report.features.push(featureReport);
+                		}
+            		}
             
-            //query intersect by filter (if any mpa) to get bbox
-            var targetFilter = this.areaIdProperty + " = " + this.report.target.id;
-            if(this.report.type == "MPA" & this.report.name != "All MPAs"){
-                targetFilter += " AND wdpaid = " + id;
-            }
-            var intersectRequest = this.constants.OGC_WFS_BASEURL + "?version=1.0.0&request=GetFeature";
-            var targetLayer = (this.report.type != "MPA")? this.areaFeatureType : this_.intersectFeatureType;
-            intersectRequest += "&typeName=" + targetLayer;
-	    intersectRequest += "&outputFormat=json";
-            intersectRequest += "&cql_filter=" + targetFilter;
-            intersectRequest = encodeURI(intersectRequest);
+            		//query intersect by filter (if any mpa) to get bbox
+            		var targetFilter = this.areaIdProperty + " = " + this.report.target.id;
+            		if(this.report.type == "MPA" & this.report.name != "All MPAs"){
+                		targetFilter += " AND wdpaid = " + id;
+            		}
+            		var intersectRequest = this.constants.OGC_WFS_BASEURL + "?version=1.0.0&request=GetFeature";
+            		var targetLayer = (this.report.type != "MPA")? this.areaFeatureType : this_.intersectFeatureType;
+            		intersectRequest += "&typeName=" + targetLayer;
+	    		intersectRequest += "&outputFormat=json";
+            		intersectRequest += "&cql_filter=" + targetFilter;
+            		intersectRequest = encodeURI(intersectRequest);
             
-            console.log("Performing WFS request to get Report map bbox");
-            console.log(intersectRequest);
-            $.ajax({
-                url: intersectRequest,
-                success: function(response) {
-                    //add source feature layer
-                    var features = this_.constants.OGC_WFS_FORMAT.readFeatures(response);
-                    var intersectFeatures = new ol.source.Vector();
-                    intersectFeatures.addFeatures(features);
-                    this_.report.featureType = targetLayer;
-                    this_.report.filter = targetFilter;
-                    this_.report.bbox = intersectFeatures.getExtent();
+            		console.log("Performing WFS request to get Report map bbox");
+            		console.log(intersectRequest);
+            		$.ajax({
+                		url: intersectRequest,
+                		success: function(response) {
+                    			//add source feature layer
+                    			var features = this_.constants.OGC_WFS_FORMAT.readFeatures(response);
+                    			var intersectFeatures = new ol.source.Vector();
+                    			intersectFeatures.addFeatures(features);
+                    			this_.report.featureType = targetLayer;
+                    			this_.report.filter = targetFilter;
+                    			this_.report.bbox = intersectFeatures.getExtent();
 		
-		    //additional fields
-		    if(this_.report.isMPA){
-			var mpa = intersectFeatures.getFeatures()[0];
-		    	this_.report.extraInfo = {
-			    wdpa_pid : mpa.get('wdpa_pid'),
-			    desig : mpa.get('desig'),
-			    desig_type : mpa.get('desig_type'),
-			    iucn_cat: mpa.get('iucn_cat'),
-			    status: mpa.get('status'),
-			    status_yr: mpa.get('status_yr'),
-			    gov_type: mpa.get('gov_type'),
-			    mang_auth: mpa.get('mang_auth')
-		    	}
-		    }
+		    			//additional fields
+		    			if(this_.report.isMPA){
+						var mpa = intersectFeatures.getFeatures()[0];
+		    				this_.report.extraInfo = {
+			    				wdpa_pid : mpa.get('wdpa_pid'),
+			    				desig : mpa.get('desig'),
+			    				desig_type : mpa.get('desig_type'),
+			    				iucn_cat: mpa.get('iucn_cat'),
+			    				status: mpa.get('status'),
+			    				status_yr: mpa.get('status_yr'),
+			    				gov_type: mpa.get('gov_type'),
+			    				mang_auth: mpa.get('mang_auth')
+		    				}
+		    			}
 
-                    //hide report loader
-                    $("#mpaReportLoader").hide(); 
+                    			//hide report loader
+                    			$("#mpaReportLoader").hide(); 
                     
-                    //build the templates
-                    this_._template1 = document.getElementById('mpa-report-template1').innerHTML;
-                    Mustache.parse(this_._template2);
-                    this_._template2 = document.getElementById('mpa-report-template2').innerHTML;
-                    Mustache.parse(this_._template2);
+                    			//build the templates
+                    			this_._template1 = document.getElementById('mpa-report-template1').innerHTML;
+                    			Mustache.parse(this_._template2);
+                    			this_._template2 = document.getElementById('mpa-report-template2').innerHTML;
+                    			Mustache.parse(this_._template2);
                 
-                    //Render the main template
-                    var rendered = Mustache.render(this_._template1, this_.report);
-                    document.getElementById('mpaReportMainWrapper').innerHTML = rendered;
-                    $('.mpa-report-featurelist').css("height", "90%");
+                    			//Render the main template
+                    			var rendered = Mustache.render(this_._template1, this_.report);
+                    			document.getElementById('mpaReportMainWrapper').innerHTML = rendered;
+                    			$('.mpa-report-featurelist').css("height", "90%");
                     
-                    //select first feature by default
-                    var buttonIdFirst = "#"+this_.report.features[0].metadata.id + "-button";
-                    $(buttonIdFirst).trigger("click");
+                    			//select first feature by default
+                    			var buttonIdFirst = "#"+this_.report.features[0].metadata.id + "-button";
+                    			$(buttonIdFirst).trigger("click");
                                     
-                },
-                error: function(){
-                    console.log("failed to query WFS");
-                    $("#mpaReportMainWrapper").append("<p>The MPA analysis returned an error...</p>");
+                		},
+                		error: function(){
+                    			console.log("failed to query WFS");
+                    			$("#mpaReportMainWrapper").append("<p>The MPA analysis returned an error...</p>");
 					$("#mpaReportMainWrapper").append("<p style='color:red;'>GET Request '"+intersectRequest+"' failed!</p>");
-                    $("#mpaReportLoader").hide(); 
-                }
-            });		
+                    			$("#mpaReportLoader").hide(); 
+                		}
+            		});		
 		}
         
-        /**
+        	/**
 		 * Function to access MPA Feature Report 
 		 * @param gtype the geomorphic feature identifier
 		 */
-        myApp.displayReport = function(gtype){
-            var features = new Array();
-            var trgGtype = undefined;
-            for(var i=0;i<this.report.features.length;i++){
-                var buttonId = "#"+this.report.features[i].metadata.id + "-button";
-                if(this.report.features[i].metadata.id == gtype){
-                    trgGtype = this.report.features[i].metadata;
-                    features.push(this.report.features[i]);
-                    $(buttonId).addClass("selected");
-                }else{
-                    $(buttonId).removeClass("selected");
-                }
-            }
-            var featureReport = jQuery.extend({}, this.report)
-            featureReport.features = features;
-            var rendered = Mustache.render(this._template2, featureReport);
-            document.getElementById('mpaReportFeatureWrapper').innerHTML = rendered;
+        	myApp.displayReport = function(gtype){
+            		var features = new Array();
+            		var trgGtype = undefined;
+            		for(var i=0;i<this.report.features.length;i++){
+                		var buttonId = "#"+this.report.features[i].metadata.id + "-button";
+                		if(this.report.features[i].metadata.id == gtype){
+                    			trgGtype = this.report.features[i].metadata;
+                    			features.push(this.report.features[i]);
+                    			$(buttonId).addClass("selected");
+                		}else{
+                    			$(buttonId).removeClass("selected");
+                		}
+            		}	
+            		var featureReport = jQuery.extend({}, this.report)
+            		featureReport.features = features;
+            		var rendered = Mustache.render(this._template2, featureReport);
+            		document.getElementById('mpaReportFeatureWrapper').innerHTML = rendered;
             
-            var mapId = trgGtype.id + "-map";
-            this.featureMap = this.initMap(mapId, false, this.report.bbox);
-            this.addGeomorphicFeatureLayer(trgGtype, false);
-	    this.addLayer(false, 0, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
-            this.addLayer(false, 0, this.report.id, "MPA", this.report.featureType, this.report.filter);
-        }
-        
-        /**
-         * myApp.configureViewer()
-         */
-        myApp.configureViewer = function(){
-            var this_ = this;
-            this_.map = this_.initMap('map', true, false);
+           		var mapId = trgGtype.id + "-map";
+            		this.featureMap = this.initMap(mapId, false, this.report.bbox);
+            		this.addGeomorphicFeatureLayer(trgGtype, false);
+	    		this.addLayer(false, 0, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
+            		this.addLayer(false, 0, this.report.id, "MPA", this.report.featureType, this.report.filter);
+        	}
 
-    	    //add MPA layer
-	    var mpaLayerId = "W_mpa:mpa_original";
-	    this_.addLayer(true, 1, "allmpas", "Marine Protected Areas", mpaLayerId);
+		/**
+		 * Function to print MPA Results (table+graph) as PDF
+        	 *
+		 */
+		myApp.printResults = function(){
+			var totalWide = 297;
+			var totalShort = 210;
+	    		var pdf = new jsPDF();
+			var maxX = totalWide;
+			var maxY = totalShort; 
+		
+			//header
+			pdf.setFontType('bold')
+			pdf.setFontSize(20);
+			pdf.text(10, 20, 'MPA Analysis report');
+			pdf.setFontSize(15);
+
+			//handle information on the selected feature
+			var selectedEntity = this.processData.filter(function(row){if(row.type != "MPA") return row})[0]
+			pdf.setFontType('bold');
+			var entity = selectedEntity.name + ' (' + selectedEntity.type +')';
+			var entityTxt = pdf.splitTextToSize(entity, pdf.internal.pageSize.width - 110, {})			
+			pdf.text(10, 30, entityTxt);
+			pdf.setFontType('normal');
+			pdf.setFontSize(12);
+			pdf.text(10, 45, 'ID: ' + selectedEntity.id + ' (' + this.areaIdProperty + ')');
+			var imageMap = $("#map").find("canvas")[0].toDataURL('image/jpeg');
+			pdf.addImage(imageMap, 'JPEG', 115, 20, 80, 50);
+
+			//handle table results (with real values)
+			pdf.addPage( 'a4','landscape');
+			pdf.setFontType('bold')
+			pdf.text(10, 20, 'Surfaces - in square kilometers')
+			pdf.line(10, 25, maxX - 10, 25) 
+    	 		var elem = document.getElementById("mpaResultsTable");
+    			var res = pdf.autoTableHtmlToJson(elem);
+    			pdf.autoTable(this.columnNames.slice(1), res.data,{
+			    startX: 10,
+			    startY: 30,
+    			    tableWidth: 'wrap',
+    			    styles: {cellPadding: 0.5, fontSize: 8}
+  			});
+
+			//handle graphic result (with real values)
+			pdf.addPage( 'a4','landscape');
+			var imageGraph = $("#mpaResultsCharts").highcharts().createCanvas();
+			var marginX = 10;
+			var marginY = 20;
+        		pdf.addImage(imageGraph, 'JPEG', marginX, marginY, maxX - 2*marginX, maxX / 2);
+		
+			//output
+    			pdf.output("dataurlnewwindow"); 	
+		}        
+
+        	/**
+        	 * myApp.configureViewer()
+        	 */
+        	myApp.configureViewer = function(){
+            		var this_ = this;
+            		this_.map = this_.initMap('map', true, false);
+
+    	    		//add MPA layer
+	    		var mpaLayerId = "W_mpa:mpa_original";
+	    		//this_.addLayer(true, 1, "allmpas", "Marine Protected Areas", mpaLayerId);
 
             
-            //default selector
-            this_.configureMapSelector("EEZ");
+            		//default selector
+            		this_.configureMapSelector("EEZ");
             
-            //do business once geomorphic feature data is loaded
-            this_.fetchGeomorphicFeatures()
-            .done(function(data){
+            		//do business once geomorphic feature data is loaded
+            		this_.fetchGeomorphicFeatures()
+            		.done(function(data){
                     
-                //add geomorphic Feature layers
-                this_.addGeomorphicFeatureLayers();
+                		//add geomorphic Feature layers
+                		//this_.addGeomorphicFeatureLayers();
                 
-                //analyzer button (trigger WPS)
-                $("#analyzer").on("click", function(e){
-                    var areaType = this_.$areaTypeSelector.select2("data")[0].id;
-                    var areaId = this_.$areaSelector.select2("data")[0].id;
-                    console.log("MPA analysis for "+areaType+" id ='"+areaId+"'");
-                    this_.executeWPSRequest(areaType, areaId);
-                });
+                		//analyzer button (trigger WPS)
+                		$("#analyzer").on("click", function(e){
+                    			var areaType = this_.$areaTypeSelector.select2("data")[0].id;
+                    			var areaId = this_.$areaSelector.select2("data")[0].id;
+                    			console.log("MPA analysis for "+areaType+" id ='"+areaId+"'");
+                    			this_.executeWPSRequest(areaType, areaId);
+                		});
                 
-                // for testing table/reporting only
-                if(this_.constants.DEBUG_REPORTING){
+                		// for testing table/reporting only
+                		if(this_.constants.DEBUG_REPORTING){
                    
-                    //go to report tab
-                    $('#mpaTabs').show();
-                    $('#mpaTabs').tabs();
-                    $('#mpaTabs').tabs( "option", "active", 0 ); //go to table
-                    $("#mpaResultsWrapper").show();
-                    $("#mpaResultsCharts").show();
-                    $("#mpaResultsWrapper").empty();
-                    $("#mpaResultsCharts").empty();
-                    $("#mpaResultsLoader").show();
+                    			//go to report tab
+                    			$('#mpaTabs').show();
+                    			$('#mpaTabs').tabs();
+                    			$('#mpaTabs').tabs( "option", "active", 0 ); //go to table
+                    			$("#mpaResultsWrapper").show();
+                    			$("#mpaResultsCharts").show();
+                    			$("#mpaResultsWrapper").empty();
+                    			$("#mpaResultsCharts").empty();
+                    			$("#mpaResultsLoader").show();
                     
-                    //simulate execution
-                    var url = "https://data.d4science.org/VDVyTjVmVkFkUzRjK1llZ25sSXY0cVJqUk41TmZVa0VHbWJQNStIS0N6Yz0-VLT";
-                    this_.storeWPSOutputMetadata("EEZ", 8404, [-81.21527777999995, 20.36826343900003, -70.63139390299995, 30.355082680000066], 0, 0);
-                    this_.getWPSOutputData(url);
-                }
-            })
-            .fail(function() {
-                alert("geodata.json is not valid JSON data");
-            });
+                    			//simulate execution
+                    			var url = "https://data.d4science.org/VDVyTjVmVkFkUzRjK1llZ25sSXY0cVJqUk41TmZVa0VHbWJQNStIS0N6Yz0-VLT";
+                    			this_.storeWPSOutputMetadata("EEZ", 8404, [-81.21527777999995, 20.36826343900003, -70.63139390299995, 30.355082680000066], 0, 0);
+                    			this_.getWPSOutputData(url);
+                		}
+            		})
+            		.fail(function() {
+            		    alert("geodata.json is not valid JSON data");
+            		});
             
-       }
+       		}
 		
 		//===========================================================================================
 		//application init
@@ -1163,13 +1242,18 @@ var myApp = myApp || {};
 		
 		//fetch token
 		myApp.fetchSecurityToken();
+
+		//fetch user profile
+		myApp.fetchUserProfile();
 		
 		//area type selector
 		myApp.initAreaTypeSelector();
         
-        //init map
-        myApp.configureViewer();
+        	//init map
+        	myApp.configureViewer();
 
 	});
 	
 }( jQuery ));
+
+

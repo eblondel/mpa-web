@@ -1,3 +1,8 @@
+
+/**
+ * InitResultsChart
+ *
+ */
 myApp.initResultsChart = function() {
     'use strict';
     var this_ = this;
