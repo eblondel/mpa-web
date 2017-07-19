@@ -19,21 +19,21 @@ var myApp = myApp || {};
 			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
 			OVERLAY_GROUP_NAMES: [{name: "Geomorphic features"},{name: "Base overlays"}],
-            		ZOOM: 3,
-            		OGC_WMS_NS: "W_mpa",
-            		OGC_WMS_SUFFIX: "geo_fea_",
+            ZOOM: 3,
+            OGC_WMS_NS: "W_mpa",
+            OGC_WMS_SUFFIX: "geo_fea_",
 			OGC_WMS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wms",
 			OGC_WFS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			//OGC_WFS_BBOX: [-180, -90, 180, 90],
-           		OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+            OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
 			OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V2",
 			OGC_WPS_OUTPUTDATA_HTTPS: true,
-            		OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
+            OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
 			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
-            		DEBUG_REPORTING: false
+            DEBUG_REPORTING: false
 		}
 		
 		//Utils
