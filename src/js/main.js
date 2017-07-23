@@ -1,9 +1,9 @@
 /**
- * MPA Analysis web-application by UNEP GRID-ARENDAL
+ * MPA Analysis web-application by UN FAO & UNEP GRID-ARENDAL
  * Application development powered by FAO FIGIS team, and funded by BlueBridge EC project
  *
  * @author Emmanuel Blondel GIS Expert, Marine web-information systems Developer <emmanuel.blondel@fao.org> (alternate email <emmanuel.blondel1@gmail.com>)
- * @author Levi Westerveld Project Assistant <levi.westerveld@grida.no
+ * @author Levi Westerveld Project Assistant <levi.westerveld@grida.no>
  *
  */
 
@@ -19,21 +19,22 @@ var myApp = myApp || {};
 			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
 			OVERLAY_GROUP_NAMES: [{name: "Geomorphic features"},{name: "Base overlays"}],
-            ZOOM: 3,
-            OGC_WMS_NS: "W_mpa",
-            OGC_WMS_SUFFIX: "geo_fea_",
+            		ZOOM: 3,
+            		OGC_WMS_NS: "W_mpa",
+            		OGC_WMS_SUFFIX: "geo_fea_",
 			OGC_WMS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wms",
 			OGC_WFS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			//OGC_WFS_BBOX: [-180, -90, 180, 90],
-            OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+           		OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
 			OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V2",
 			OGC_WPS_OUTPUTDATA_HTTPS: true,
-            OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
+            		OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
+			D4S_HOMELIBRARY_BASEURL: "https://workspace-repository.d4science.org/home-library-webapp/rest",
 			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
-            DEBUG_REPORTING: false
+            		DEBUG_REPORTING: false
 		}
 		
 		//Utils
@@ -80,23 +81,76 @@ var myApp = myApp || {};
 		}
 
 		/**
- 		 * Fetch User profile
+		 * Simple json2csv util
+		 * @param objArray
+		 * @returns a string representive the CSV
 		 */
-		myApp.fetchUserProfile = function(){
-			var this_ = this;
-            		var request =  this.constants.D4S_SOCIALNETWORKING_BASEURL + "/people/profile?gcube-token=" + this.securityToken;
-            		console.log("Fetching user profile");
-            		console.log(request);
+		myApp.json2csv = function(objArray) {
+    			var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+    			var str = '';
+    			var line = '';
 
-            		$.ajax({ 
-				url: request,
-                		contentType: 'application/json',
-    				type: 'GET',
-    				success: function (response) {
-        				this_.userProfile = response.result;  
-  				}     
-	                });
-        	}
+    			//add colnames
+        		var head = array[0];
+            		for (var index in array[0]) {
+            			line += index + ',';
+            		}
+        		line = line.slice(0, -1);
+        		str += line + '\r\n';
+    			
+			//add data
+    			for (var i = 0; i < array.length; i++) {
+        			var line = '';
+            			for (var index in array[i]) {
+                			line += array[i][index] + ',';
+            			}
+        			line = line.slice(0, -1);
+        			str += line + '\r\n';
+    			}
+    			return str;
+		}
+
+		/**
+		 * Download CSV
+		 * @param content csv string
+		 * @param fileName
+		 * @param mimeType
+		 */
+		myApp.downloadCSV = function(content, fileName, mimeType) {
+  			var a = document.createElement('a');
+  			mimeType = mimeType || 'application/octet-stream';
+
+  			if (navigator.msSaveBlob) { // IE10
+    				navigator.msSaveBlob(new Blob([content], {
+    				  type: mimeType
+    				}), fileName);
+  			} else if (URL && 'download' in a) { //html5 A[download]
+    				a.href = URL.createObjectURL(new Blob([content], {
+      					type: mimeType
+    				}));
+    				a.setAttribute('download', fileName);
+    				document.body.appendChild(a);
+    				a.click();
+    				document.body.removeChild(a);
+  			} else {
+    				location.href = 'data:application/octet-stream,' + encodeURIComponent(content); // only this mime type is supported
+  			}
+		}
+		
+		/**
+		 * DataURItoBlob
+		 * @param dataURI
+		 * @param mimeType
+		 */
+		myApp.dataURItoBlob = function(dataURI, mimeType){
+			var binary = atob(dataURI.split(',')[1]);
+			var array = [];
+			for(var i=0; i < binary.length; i++){
+				array.push(binary.charCodeAt(i));
+			}
+			return new Blob( [new Uint8Array(array)], {type: mimeType});
+		}
+
 		
 		/**
 		 * Utility to render a statistical value after conversion and rounding
@@ -142,11 +196,12 @@ var myApp = myApp || {};
 			this.initResultsChart();
         	}
 	
-		// Security Token 
+		// gCubeSecurity Token 
 		//===========================================================================================
 		
 		/**
-		 * Fetch Security token
+		 * Fetch Security token required for authorization in all gCube services
+		 * @returns the security token
 		 */
 		myApp.fetchSecurityToken = function(){
 			var securityToken = this.getAllUrlParams().securityToken;
@@ -159,6 +214,240 @@ var myApp = myApp || {};
 			}
 			return this.securityToken;
 		}
+
+		// gCube services interaction methods
+		//===========================================================================================
+
+		/**
+ 		 * Fetch User profile
+		 * This method queries the gCube social-networking service in order to fetch the user profile
+		 * (including username, fullname etc)
+		 */
+		myApp.fetchUserProfile = function(){
+			var this_ = this;
+            		var request =  this.constants.D4S_SOCIALNETWORKING_BASEURL + "/people/profile?gcube-token=" + this.securityToken;
+            		console.log("Fetching user profile");
+            		$.ajax({ 
+				url: request,
+                		contentType: 'application/json',
+    				type: 'GET',
+    				success: function (response) {
+        				this_.userProfile = response.result;  
+  				}     
+	                });
+        	}
+
+		/**
+		 * Saves output data as CSV
+		 * This method perform several operations, including:
+		 * - the conversion of the analysis output to CSV
+		 * - its upload to the target user workspace in the i-Marine infrastructure. The target workspace folder 'PAIM-reports' is created
+		 *   if missing. Data is then stored into a subfolder given the process completing date/time. Upload is operated as it guarantees
+		 *   to have the outputs available as web-resources for embedding in the PDF report. Upload is done once.
+		 * - its download to user machine
+		 * @param download true/false
+		 */
+		myApp.saveData = function(download){
+			var this_ = this;
+			
+			var deferred = $.Deferred();
+
+			var userWorkspace = "/Home/" + this.userProfile.username  + "/Workspace";
+
+			//we create a folder if it doesn't exist
+			var folderName = "PAIM-reports";
+			var folderDescription = "This folder contains the PAIM analysis outputs exported from the PAIM Data Explorer";
+			var folderPath = userWorkspace + "/" + folderName;
+			var processFolderPath = folderPath + "/" + this.processMetadata.dateTime;
+			$.ajax({ 
+            		    	type: 'GET',
+             		   	url: this.constants.D4S_HOMELIBRARY_BASEURL + "/List?absPath=" + folderPath + "&gcube-token=" + this_.securityToken,
+                		success: function(listResponse){
+					
+					//check if exist
+					var deferredFolder = $.Deferred();
+					var folderExists = listResponse.indexOf("ItemNotFoundException") == -1;
+					if(!folderExists){
+						//create folder
+						console.log("Creating workspace folder '" + folderPath + "'");
+						var createFolderRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/CreateFolder?";
+						createFolderRequest += "name=" + folderName;
+						createFolderRequest += "&description=" + folderDescription;
+						createFolderRequest += "&parentPath=" + userWorkspace;
+						createFolderRequest += "&gcube-token=" + this_.securityToken;
+						$.ajax({ 
+            		    				type: 'GET',
+             		   				url: createFolderRequest,
+                					success: function(data){
+								console.log(data);
+								deferredFolder.resolve(data);
+							}
+						})
+					}else{
+						console.log("Workspace folder '"+ folderPath + "' already exists");
+						deferredFolder.resolve()	
+					}
+					var promiseFolder = deferredFolder.promise();
+					
+					//next, work on subfolder for process and upload data
+					promiseFolder.then(function(){
+
+						//check if process folder exists, if not we create it
+						$.ajax({
+							type: 'GET',
+							url: this_.constants.D4S_HOMELIBRARY_BASEURL + "/List?absPath=" + processFolderPath + "&gcube-token=" + this_.securityToken,
+							success: function(listResp){
+								//check if exist
+								var deferredProcessFolder = $.Deferred();
+								var processFolderExists = listResp.indexOf("ItemNotFoundException") == -1;
+								if(!processFolderExists){
+									//create process folder
+									console.log("Creating workspace process folder '" + processFolderPath + "'");
+									var createProcessFolderRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/CreateFolder?";
+									createProcessFolderRequest += "name=" + this_.processMetadata.dateTime;
+									createProcessFolderRequest += "&description=" + this_.processMetadata.end.dateTime;
+									createProcessFolderRequest += "&parentPath=" + folderPath;
+									createProcessFolderRequest += "&gcube-token=" + this_.securityToken;
+									$.ajax({ 
+            		    							type: 'GET',
+             		   							url: createProcessFolderRequest,
+                								success: function(data){
+											console.log(data);
+											deferredProcessFolder.resolve(data);
+										}
+									})
+
+								}else{
+									console.log("Workspace folder '"+ processFolderPath + "' already exists");
+									deferredProcessFolder.resolve();
+								}
+								var promiseProcessFolder = deferredProcessFolder.promise();
+									
+								//next upload data
+								var entity = "PAIM-report_" + this_.processData.filter(function(row){if(row.type != "MPA") return row})[0].name;
+								var filename = entity + ".csv";
+								promiseProcessFolder.then(function(){
+									var csv = this_.json2csv(this_.processData);
+									var deferredUpload = $.Deferred();
+
+									var publicLinkRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/GetPublicLink?";
+									publicLinkRequest += "absPath=" + processFolderPath + "/"+ filename;
+									publicLinkRequest += "&shortUrl=true&gcube-token=" + this_.securityToken;
+									$.ajax({
+									  type: 'GET',
+									  url: publicLinkRequest,
+									  success: function(fileLink){
+										var fileExists = fileLink.indexOf("ItemNotFoundException") == -1;
+										if(!fileExists){
+										    var uploadRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/Upload?";
+										    uploadRequest += "name=" + filename;
+										    uploadRequest += "&description=" + filename;
+										    uploadRequest += "&parentPath=" + processFolderPath;
+										    uploadRequest += "&gcube-token=" + this_.securityToken; 
+										    $.ajax({
+											type: 'POST',
+											url: uploadRequest,
+											contentType: 'text/csv',
+   											data: csv,
+											success: function(data){
+												console.log("Succesfull upload of '"+filename+"' to workspace");
+												$.ajax({
+									  			    type: 'GET',
+									 			    url: publicLinkRequest,
+									  			    success: function(fileLink){
+													 var xml = $.parseXML(fileLink);
+										    			 var link = xml.getElementsByTagName("string")[0].childNodes[0].data;
+													 deferredUpload.resolve({
+														path: processFolderPath,
+														name: entity,
+														url: link
+													 });
+												    }
+												});	
+											},
+											error: function(error){
+												console.log("Error during file upload");
+												deferredUpload.reject(error);
+											}
+										    })
+										}else{
+										    var xml = $.parseXML(fileLink);
+										    var link = xml.getElementsByTagName("string")[0].childNodes[0].data;
+										    deferredUpload.resolve({
+											path: processFolderPath,
+											name: entity,
+											url: link
+										    });
+										}
+									  }
+									});
+									var promiseUpload = deferredUpload.promise();
+									promiseUpload.then(function(data){
+										console.log(data);
+										if(download){
+											this_.downloadCSV(csv, filename, 'text/csv;encoding:utf-8');
+										}
+										deferred.resolve(data);
+									});									
+								});
+							}
+						});						
+
+					});
+
+				}
+			});
+
+			return deferred.promise();	
+
+		}
+
+
+		/**
+		 * Save & download results as PDF. The function will first save data before generating the PDF.
+		 * In this way PDF report will include a link to data in CSV format.
+		 *
+		 */ 
+		myApp.saveResults = function(){
+			var this_ = this;
+			this_.saveData(false).then(function(data){
+				var filename = data.name + ".pdf";
+				var publicLinkRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/GetPublicLink?";
+				publicLinkRequest += "absPath=" + data.path + "/"+ filename;
+				publicLinkRequest += "&shortUrl=true&gcube-token=" + this_.securityToken;
+				$.ajax({
+					type: 'GET',
+					url: publicLinkRequest,
+					success: function(fileLink){
+						var fileExists = fileLink.indexOf("ItemNotFoundException") == -1;
+						
+						var pdf = this_.produceResultsPDF(data);
+						if(!fileExists){
+							console.log("Uploading '"+filename+"' to workspace");
+							var uploadRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/Upload?";
+							uploadRequest += "name=" + filename;
+							uploadRequest += "&description=" + filename;
+							uploadRequest += "&parentPath=" + data.path;
+							uploadRequest += "&gcube-token=" + this_.securityToken; 
+							$.ajax({
+								type: 'POST',
+								url: uploadRequest,
+								contentType: 'application/pdf',
+								dataType: 'text',
+   								data: pdf.output('blob'),
+								processData: false,
+								success: function(data){
+									console.log("Succesfull upload of '"+filename+"' to workspace");
+									pdf.save(filename);
+								}
+							});
+						}else{
+							pdf.save(filename);
+						}					
+					}
+				})
+			});
+		}  
 	
 		//Geomorphic Features
 		//==========================================================================================
@@ -591,11 +880,13 @@ var myApp = myApp || {};
 								var targetFeature = this_.sourceFeatures.getFeatureById(e.params.data.id);
 								this_.selectInteraction.getFeatures().clear();
 								this_.selectInteraction.getFeatures().push(targetFeature);
-								this_.map.getView().fit(targetFeature.getGeometry().getExtent(), this_.map.getSize());
+								this_.areaExtent = targetFeature.getGeometry().getExtent();
+								this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
 								$("#analyzer").show();
 							});
 							this_.$areaSelector.on("select2:unselect", function (e) {
 								this_.selectInteraction.getFeatures().clear();
+								this_.areaExtent = null;
 								this_.map.getView().fit(this_.map.getView().getProjection().getExtent(), this_.map.getSize());
 								this_.map.getView().setZoom(2);
 								$("#analyzer").hide();
@@ -767,6 +1058,8 @@ var myApp = myApp || {};
 				success: function(xml) {
 					var t2 = new Date();
 					this_.processMetadata.end = t2;
+					var endStr = t2.toISOString();
+					this_.processMetadata.dateTime = (endStr.split("T")[0] + "" + endStr.split("T")[1].split(".")[0]).replace(/-/g,"").replace(/:/g,"");
 					
 					//process output data
                     			//Recent DataMiner nows handle logs as 1st Result, result is stored as 2d Result (!)
@@ -862,8 +1155,10 @@ var myApp = myApp || {};
 				formatSwitcherHtml += '</tr></table>';
 				$("#mpaResultsWrapper").append(formatSwitcherHtml);
 
-				var pdfExportTable = '<button type="button" class="mpaResultsTable-pdf-button" title="Download Results as PDF" onclick="myApp.printResults()"></button>';
-				$("#mpaResultsWrapper").append(pdfExportTable);
+				var csvUploadButton = '<button type="button" class="mpaResultsTable-csv-upload" title="Save & Download Results data (CSV)" onclick="myApp.saveData(true)"></button>';
+				$("#mpaResultsWrapper").append(csvUploadButton);
+				var pdfExportButton = '<button type="button" class="mpaResultsTable-pdf-export" title="Save & Download Results report (PDF)" onclick="myApp.saveResults()"></button>';
+				$("#mpaResultsWrapper").append(pdfExportButton);
 					
                 		//results table
 				var resultsTable = '<table id="mpaResultsTable" class="stripe row-border order-column" cellspacing="0" style="width:100%;"><thead><tr>' + tableHeaders + '</tr></thead></table>';
@@ -1128,10 +1423,11 @@ var myApp = myApp || {};
         	}
 
 		/**
-		 * Function to print MPA Results (table+graph) as PDF
+		 * Function to produce results as PDF
         	 *
 		 */
-		myApp.printResults = function(){
+		myApp.produceResultsPDF = function(data){
+			var this_ = this;
 			var totalWide = 297;
 			var totalShort = 210;
 	    		var pdf = new jsPDF();
@@ -1143,7 +1439,7 @@ var myApp = myApp || {};
 			pdf.setFontSize(20);
 			pdf.text(10, 20, 'MPA Analysis report');
 			pdf.setFontSize(15);
-
+			
 			//handle information on the selected feature
 			var selectedEntity = this.processData.filter(function(row){if(row.type != "MPA") return row})[0]
 			pdf.setFontType('bold');
@@ -1153,33 +1449,74 @@ var myApp = myApp || {};
 			pdf.setFontType('normal');
 			pdf.setFontSize(12);
 			pdf.text(10, 45, 'ID: ' + selectedEntity.id + ' (' + this.areaIdProperty + ')');
-			var imageMap = $("#map").find("canvas")[0].toDataURL('image/jpeg');
-			pdf.addImage(imageMap, 'JPEG', 115, 20, 80, 50);
+						
+			//handle user info & date of creation
+			pdf.setFontType('italic');
+			pdf.setFontSize(8);
+			if(this.userProfile) pdf.text(10, 60, "PDF Report generated by " + this.userProfile.fullname);
+			var today = new Date();
+			pdf.text(10, 65, "Creation date/time: " + today.toISOString());
+			pdf.setFontType('normal');
+			pdf.setFontSize(12);
 
-			//handle table results (with real values)
-			pdf.addPage( 'a4','landscape');
-			pdf.setFontType('bold')
-			pdf.text(10, 20, 'Surfaces - in square kilometers')
-			pdf.line(10, 25, maxX - 10, 25) 
-    	 		var elem = document.getElementById("mpaResultsTable");
-    			var res = pdf.autoTableHtmlToJson(elem);
-    			pdf.autoTable(this.columnNames.slice(1), res.data,{
-			    startX: 10,
-			    startY: 30,
-    			    tableWidth: 'wrap',
-    			    styles: {cellPadding: 0.5, fontSize: 8}
-  			});
+			//Purpose
+			var abstractTxt = "This report has been produced from the BlueBridge Protected Area Impact Map VRE Data Explorer (https://i-marine.d4science.org/group/protectedareaimpactmaps) ";
+			abstractTxt += "which allows users to query a rich database to report on the presence of natural features and human usages of managed areas (i.e.: Marine Protected Areas) ";
+			abstractTxt += "relative to a target region of interest.";
+			abstractTxt = pdf.splitTextToSize(abstractTxt, pdf.internal.pageSize.width - 20, {})
+			pdf.text(10, 85, abstractTxt);
+			
+			//Map
+			this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
+			var imageMap = $("#map").find("canvas")[0].toDataURL('image/png');
+			pdf.addImage(imageMap, 'PNG', 10, 120, 190, 120, undefined, 'medium');
 
-			//handle graphic result (with real values)
-			pdf.addPage( 'a4','landscape');
-			var imageGraph = $("#mpaResultsCharts").highcharts().createCanvas();
-			var marginX = 10;
-			var marginY = 20;
-        		pdf.addImage(imageGraph, 'JPEG', marginX, marginY, maxX - 2*marginX, maxX / 2);
+			//subreport
+			var createSubReport = function(percent){
+				//handle table results (with real values)
+				pdf.addPage( 'a4','landscape');
+				pdf.setFontType('bold');
+				pdf.setFontSize(16);
+				pdf.text(10, 20, (percent? 'Percentage of geomorphic features' : 'Surfaces - in square kilometers'));
+				pdf.line(10, 25, maxX - 10, 25);
+				var idx = 35;			
+				if(!percent){
+					pdf.setFontType('normal');
+					pdf.setFontSize(12);
+					pdf.text(10, idx, 'Data in CSV format is available for download at '+ data.url);
+					idx += 10;
+				} 
+    	 			var elem = document.getElementById("mpaResultsTable");
+    				var res = pdf.autoTableHtmlToJson(elem);
+    				pdf.autoTable(this_.columnNames.slice(1), res.data,{
+				    startX: 10,
+				    startY: idx,
+    				    tableWidth: 'wrap',
+    				    styles: {cellPadding: 0.5, fontSize: 8}
+  				});
+
+				//handle graphic result (with real values)
+				pdf.addPage( 'a4','landscape');
+				pdf.setFontType('bold');
+				pdf.setFontSize(16);
+				var imageGraph = $("#mpaResultsCharts").highcharts().createCanvas();
+				var marginX = 10;
+				var marginY = 20;
+        			pdf.addImage(imageGraph, 'PNG', marginX, marginY, maxX - 2*marginX, maxX / 2);	
+			}
+
+			//handle sub-report 1 (surfaces)
+			//-----------------------------
+			$("#surfaceSwitcher")[0].click();
+			createSubReport(false);
+			
+			$("#percentSwitcher")[0].click();
+			createSubReport(true);
 		
 			//output
-    			pdf.output("dataurlnewwindow"); 	
-		}        
+   			$("#surfaceSwitcher")[0].click();
+			return(pdf);
+		}     
 
         	/**
         	 * myApp.configureViewer()
@@ -1201,7 +1538,7 @@ var myApp = myApp || {};
             		.done(function(data){
                     
                 		//add geomorphic Feature layers
-                		//this_.addGeomorphicFeatureLayers();
+                		this_.addGeomorphicFeatureLayers();
                 
                 		//analyzer button (trigger WPS)
                 		$("#analyzer").on("click", function(e){

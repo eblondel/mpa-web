@@ -58,6 +58,9 @@ myApp.initResultsChart = function() {
     }
     
     $('#mpaResultsCharts').highcharts({
+	credits:{
+	    enabled: false
+	},
         chart: {
             type: 'column'
         },title: {

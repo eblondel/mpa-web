@@ -14,7 +14,7 @@
 
             canvg(canvas, svg);
 
-            return canvas.toDataURL("image/jpeg");
+            return canvas.toDataURL("image/png");
 
         }else{
             alert("Your browser doesn't support this feature, please use a modern browser");

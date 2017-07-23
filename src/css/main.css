@@ -509,12 +509,32 @@ ul.sources li{
     padding-bottom:4px;
 }
 
-/** PDF **/
+/** Export facilities **/
 
 
-.mpaResultsTable-pdf-button {
+.mpaResultsTable-csv-upload {
     position: absolute;
     top: 0px;
+    padding: 0px;
+    border: none;
+    width: 40px;
+    height: 40px;
+    margin-top: 10px;
+    background-image: url(../img/csv-icon.png);
+    background-size: 40px 40px;
+    background-repeat: no-repeat;
+    background-color:transparent;
+    opacity:0.7;
+}
+
+.mpaResultsTable-csv-upload:hover{
+    opacity:1;
+}
+
+.mpaResultsTable-pdf-export {
+    position: absolute;
+    top: 0px;
+    left: 60px;
     padding: 0px;
     border: none;
     width: 40px;
@@ -527,7 +547,7 @@ ul.sources li{
     opacity:0.7;
 }
 
-.mpaResultsTable-pdf-button:hover{
+.mpaResultsTable-pdf-export:hover{
     opacity:1;
 }
 
