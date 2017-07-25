@@ -395,7 +395,7 @@ table {
 #mpaResults {height:80%;}
 .mpa-table-name{font-weight:bold;color:#655898 !important;}
 .mpa-table-stat{font-style:italic;}
-.mpa-timer{position: absolute;top: 50px;}
+.mpa-timer{position: absolute;top: 60px; font-size:90%}
 .mpa-formatswitcher{margin:0 auto;}
 .mpa-formatswitcher td {padding: 4px;}
 
@@ -511,7 +511,6 @@ ul.sources li{
 
 /** Export facilities **/
 
-
 .mpaResultsTable-csv-upload {
     position: absolute;
     top: 0px;
@@ -549,6 +548,32 @@ ul.sources li{
 
 .mpaResultsTable-pdf-export:hover{
     opacity:1;
+}
+
+
+.mpaResultsTable-upload-loader {
+    position: absolute;
+    top: 0px;
+    left: 120px;
+    padding: 0px;
+    border: none;
+    width: 20px;
+    height: 20px;
+    margin-top: 20px;
+    background-image: url(../img/loading.gif);
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-color:transparent;
+}
+
+.mpaResultsTable-upload-state {
+    position: absolute;
+    top: 0px;
+    left: 145px;
+    padding: 0px;
+    border: none;
+    margin-top: 20px;
+    font-style: italic;
 }
 
 
