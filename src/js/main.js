@@ -724,7 +724,7 @@ var myApp = myApp || {};
             
             		return map;
 		}
-		
+
 		/**
 		 * Set legend graphic
 		 * @param a ol.layer.Layer object
@@ -1085,9 +1085,9 @@ var myApp = myApp || {};
 				
 			}else{
 				vectorLayer.setSource(this_.sourceFeatures);
+				vectorLayer.setProperties({title: "Geo selector ("+areaType+")"});
 			}
 			
-			this.map.getControls().getArray().filter(function(control){if(control instanceof ol.control.LayerSwitcher) return control})[0].renderPanel();
 		}		
 		
 		// WPS analysis methods
