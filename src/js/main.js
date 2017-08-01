@@ -19,7 +19,7 @@ var myApp = myApp || {};
 			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
 			OVERLAY_GROUP_NAMES: [{name: "Geomorphic features"},{name: "Base overlays"}],
-            		ZOOM: 3,
+            		MAP_ZOOM: 3,
 			MAP_PROJECTION: 'EPSG:4326',
             		OGC_WMS_NS: "W_mpa",
             		OGC_WMS_SUFFIX: "geo_fea_",
@@ -263,7 +263,8 @@ var myApp = myApp || {};
 			var folderName = "PAIM-reports";
 			var folderDescription = "This folder contains the PAIM analysis outputs exported from the PAIM Data Explorer";
 			var folderPath = userWorkspace + "/" + folderName;
-			var processFolderPath = folderPath + "/" + this.processMetadata.dateTime;
+			var processFolder =  this_.processMetadata.areaType + "-" + this_.processMetadata.areaId + "-" + this.processMetadata.dateTime;
+			var processFolderPath = folderPath + "/" + processFolder;
 			$.ajax({ 
             		    	type: 'GET',
              		   	url: this.constants.D4S_HOMELIBRARY_BASEURL + "/List?absPath=" + folderPath + "&gcube-token=" + this_.securityToken,
@@ -312,13 +313,13 @@ var myApp = myApp || {};
 								var processFolderExists = listResp.indexOf("ItemNotFoundException") == -1;
 								if(!processFolderExists){
 									//create process folder
-									msg = "Creating workspace process folder '" + this_.processMetadata.dataTime + "'...";
+									msg = "Creating workspace process folder '" + processFolder + "'...";
 									$("#upload-state").text(msg);
 									console.log(msg);
 
 									var createProcessFolderRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/CreateFolder?";
-									createProcessFolderRequest += "name=" + this_.processMetadata.dateTime;
-									createProcessFolderRequest += "&description=" + this_.processMetadata.end.dateTime;
+									createProcessFolderRequest += "name=" + processFolder;
+									createProcessFolderRequest += "&description=" + processFolder;
 									createProcessFolderRequest += "&parentPath=" + folderPath;
 									createProcessFolderRequest += "&gcube-token=" + this_.securityToken;
 									$.ajax({ 
@@ -600,39 +601,53 @@ var myApp = myApp || {};
 		myApp.initMap = function(id, main, extent){
         
             		var map;
+			var this_ = this;
             
 			//baselayers
+			var esri1Template = 'https://server.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer/tile/{z}/{y}/{x}';
+			var esri2Template = 'https://server.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer/tile/{z}/{y}/{x}';
 			var baseLayers = [
 				new ol.layer.Group({
 					'title': "Basemaps",
 					layers: [
 						new ol.layer.Tile({
-							title : "OpenStreetMap - Countries",
+							title : "ESRI - Countries",
 							type: 'base',
-							source : new ol.source.XYZ({
-							
+							source : new ol.source.XYZ({							
 								attributions: [
 									new ol.Attribution({
-										html: 'Tiles © <a href="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">OpenStreetMap</a>'
+										html: 'Tiles © <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer">ArcGIS</a>'
 									})
 								],
-                                				url : '//tile.openstreetmap.org/{z}/{x}/{y}.png',
-								crossOrigin: 'anonymous'
+								projection: ol.proj.get(this_.constants.MAP_PROJECTION),
+								tileSize: 512,
+                                				tileUrlFunction: function(tileCoord) {
+                							return esri2Template.replace('{z}', (tileCoord[0] - 1).toString())
+                                  						.replace('{x}', tileCoord[1].toString())
+                                  						.replace('{y}', (-tileCoord[2] - 1).toString());
+              							},
+								crossOrigin: 'anonymous',
+								wrapX: true
                             				})
 						}),
 						new ol.layer.Tile({
 							title : "ESRI World Imagery",
 							type: 'base',
 							source : new ol.source.XYZ({
-							
 								attributions: [
 									new ol.Attribution({
-										html: 'Tiles © <a href="http://services.arcgisonline.com/ArcGIS/' +
-											'rest/services/World_Imagery/MapServer">ArcGIS</a>'
+										html: 'Tiles © <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer">ArcGIS</a>'
 									})
 								],
-                                				url : '//server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-								crossOrigin: 'anonymous'
+								projection: ol.proj.get(this_.constants.MAP_PROJECTION),
+								tileSize: 512,
+								tileUrlFunction: function(tileCoord) {
+                							return esri1Template.replace('{z}', (tileCoord[0] - 1).toString())
+                                  						.replace('{x}', tileCoord[1].toString())
+                                  						.replace('{y}', (-tileCoord[2] - 1).toString());
+              							},
+								crossOrigin: 'anonymous',
+								wrapX: true
                             				})
 						})
 
@@ -703,8 +718,8 @@ var myApp = myApp || {};
              		   map.getView().fit(extent, map.getSize());
             		}
             
-            		if(main && this.constants.ZOOM){
-            		    map.getView().setZoom(this.constants.ZOOM);
+            		if(main && this.constants.MAP_ZOOM){
+            		    map.getView().setZoom(this.constants.MAP_ZOOM);
             		}
             
             		return map;
@@ -1668,6 +1683,10 @@ var myApp = myApp || {};
                     			console.log("MPA analysis for "+areaType+" id ='"+areaId+"'");
                     			this_.executeWPSRequest(areaType, areaId);
                 		});
+
+				$($("li[data-where='#pageMap']")).on("click", function(e){
+					$($("#map").find("canvas")).show();
+				});
                 
                 		// for testing table/reporting only
                 		if(this_.constants.DEBUG_REPORTING){
