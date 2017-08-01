@@ -898,8 +898,8 @@ var myApp = myApp || {};
 				this_.areaLabelProperty = "geoname";
 				break;
 			case "ECOREGION":
-				this_.areaFeatureType = "W_mpa:meow_ppow";
-				this_.intersectFeatureType = "W_mpa:intersect_mpa_ecoregions_v1",
+				this_.areaFeatureType = "W_mpa:marine_ecoregions";
+				this_.intersectFeatureType = "W_mpa:intersect_mpa_marine_ecoregions_v1",
 				this_.areaIdProperty = "ecoregion";
 				this_.areaLabelProperty = "ecoregion";
 				break;
