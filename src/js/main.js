@@ -991,12 +991,12 @@ var myApp = myApp || {};
 			
 			//try to search for existing vector source
 			var vectorLayer = myApp.getLayerByProperty("geoselector", "id");
-			
+			var title = "Geo selector ("+areaType+")";
 			if(typeof vectorLayer == "undefined"){
 				//if no layer we create it
 				var vectorLayer = new ol.layer.Vector({
 					id: "geoselector",
-					title : "Geo selector ("+areaType+")",
+					title : title,
 					source : this_.sourceFeatures
 				});
 				this_.overlays[1].getLayers().push(vectorLayer);
@@ -1085,7 +1085,7 @@ var myApp = myApp || {};
 				
 			}else{
 				vectorLayer.setSource(this_.sourceFeatures);
-				vectorLayer.setProperties({title: "Geo selector ("+areaType+")"});
+				vectorLayer.setProperties({title: title});
 			}
 			
 		}		
@@ -1280,7 +1280,7 @@ var myApp = myApp || {};
 							targets: 1,
 							width: 220,
 							render : function ( mData, type,row, meta ) {
-								return '<a href="#" onclick="myApp.accessReports('+row.id+')" title="Access report" class="mpa-table-name">' + mData+'</a>';                             
+								return '<a href="#" onclick="myApp.accessReports(\''+row.id+'\')" title="Access report" class="mpa-table-name">' + mData+'</a>';                             
 							}
 						},
 						{
@@ -1390,10 +1390,11 @@ var myApp = myApp || {};
                 		type: data.type,
                 		isMPA: data.type == "MPA",
 				isSingleMPA: data.name != "All MPAs" && data.type == "MPA",
-				isEEZ: data.type == "EEZ",
+				isEEZ: this.processMetadata.areatype == "EEZ",
+				isECOREGION: this.processMetadata.areatype == "ECOREGION",
                 		surface: this.renderStatValue(data.surface, "surface"),
                 		surfaceUnit: this.constants.SURFACE_UNIT.label,
-                		target: this.processData.filter(function(row){if(row.type == "EEZ") return row})[0],
+                		target: this.processData.filter(function(row){if(row.type == this_.processMetadata.areaType) return row})[0],
                 		features: []
             		}
             		for(var i=0;i<this.geomorphicFeatures.length;i++){
@@ -1414,7 +1415,7 @@ var myApp = myApp || {};
             		}
             
             		//query intersect by filter (if any mpa) to get bbox
-            		var targetFilter = this.areaIdProperty + " = " + this.report.target.id;
+            		var targetFilter = this.areaIdProperty + " = '" + this.report.target.id + "'";
             		if(this.report.type == "MPA" & this.report.name != "All MPAs"){
                 		targetFilter += " AND wdpaid = " + id;
             		}
@@ -1585,8 +1586,13 @@ var myApp = myApp || {};
 			pdf.setFontSize(10);
 			var source1 = "- Marine Protected Areas: IUCN and UNEP-WCMC (2017), The World Database on Protected Areas (WDPA) [On-line], [January 2017], Cambridge, UK: UNEP-WCMC. Available here. ";
 			source1 += "Post-processed by Lucy Bastin and Andrea Mandrici, Joint Research Centre of the European Commission - methodology available at http://www.protectedplanet.net";
-			var source2 = "- Exclusive Economic Zones: Flanders Marine Institute (2016). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 9. ";
-			source2 += "Available online at http://www.marineregions.org";
+			var source2 = "";
+			if(this.processMetadata.areaType == "EEZ"){
+				source2 = "- Exclusive Economic Zones: Flanders Marine Institute (2016). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 9. ";
+				source2 += "Available online at http://www.marineregions.org";
+			}else if(this.processMetadata.areaType == "ECOREGION"){
+				source2 = "- Marine Ecoregions: CITATION TO ADD";
+			}
 			var source3 = "- The global seafloor geomorphic features map has been produced through a collaboration between Geoscience Australia, GRID-Arendal and Conservation International. ";
 			source3 += "Reference: Harris et. al. (2014) Geomorphology of the oceans.Marine Geology (in Press)";
 			
