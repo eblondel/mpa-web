@@ -1738,6 +1738,7 @@ var myApp = myApp || {};
                 autoOpen: false,
                 title: title,
                 classes: classes,
+		position: { my: "center", at: "top", of: window },
                 show: {
                     effect: "fade",
                     duration: 300
