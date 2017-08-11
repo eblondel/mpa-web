@@ -99,6 +99,8 @@
 	width: 100%;
 	height: 100%;
 }
+#mpaResults{ margin-top: 50px;}
+#mpaReports{ margin-top: 30px;}
 
 header, header * {
 	color: inherit !important;
@@ -107,12 +109,6 @@ header, header * {
 
 #mpa-web {
     display: none;
-}
-
-#mpaTitle {
-}
-#mpaSummary{
-	font-size:85%;
 }
 
 .mpa {
@@ -126,42 +122,26 @@ header, header * {
     	text-align: center;
 }
 
-nav {
-    	padding-left: 0px;
-    	padding-right: 0px;
-    	background-color: transparent !important;
-    	border: 0px !important;
-}
+/** Top bar menu **/
+nav {padding-left: 0px;padding-right: 0px;background-color: transparent !important;border: 0px !important;}
+nav ul { padding-left: 0px; margin-bottom: 0px;}
+nav ul li { display: inline-block; padding: 6px; margin: 2px; color: #fff !important; background-color: #3EA8DF; border: 2px solid #fff; border-radius: 8px; .hwa; transition: background-color .25s ease-in-out; -moz-transition: background-color .25s ease-in-out; -webkit-transition: background-color .25s ease-in-out; }
+nav ul li:hover { cursor: pointer; background-color: #0C71B8;}    
+nav ul li.active { background-color: #0C71B8;}
+.topbarContent {position: absolute; left: 40px;top: 10px; z-index: 1; font-size: 80%; }
+.topbarContent ul { padding:0;margin:0 10px;}
+
+/** Dialogs **/
+#aboutDialog p { font-size:85%; }
+.dialog-title { text-align:center; }
+.ui-dialog { border-radius:0px; border-color:#fff; background-color:#1674B8; opacity:0.8; color:#fff; padding:0px;}
+.about-dialog  {width:400px !important; }
+.query-dialog  {width:600px !important; height:400px !important;}
+.ui-dialog  .ui-dialog-content { color:#fff; }
+.ui-dialog .ui-dialog-titlebar{background-color:#1674B8; opacity:0.8; color:#fff; border-radius:0px;}
 
 
-nav ul {
-        padding-left: 0px;
-        margin-bottom: 0px;
-}
-
-nav ul li {
-    	display: inline-block;
-    	padding: 6px;
-    	margin: 2px;
-    	color: #fff !important;
-    	background-color: rgba(32, 36, 44, 1);
-    	border: 2px solid rgba(32, 36, 44, .7);
-    	border-radius: 8px;
-    	.hwa;
-	transition: background-color .25s ease-in-out;
-   	-moz-transition: background-color .25s ease-in-out;
-   	-webkit-transition: background-color .25s ease-in-out;
-}
-    
-nav ul li:hover {
-        cursor: pointer;
-        background-color: rgba(32, 36, 44, .9);
-}
-    
-nav ul li.active {
-        background-color: #444B5A;
-}
-
+/** main **/
 html, body {
     	overflow: hidden;
     	min-height: 100% !important;
@@ -169,40 +149,15 @@ html, body {
     	font-family: "Montserrat", sans-serif !important;
 }
 
-.sidebar, #map, #layerswitcher {
-    	height: 100% !important;
-}
+.sidebar, #map, #layerswitcher {height: 100% !important;}
+.sidebar::-webkit-scrollbar { display: none; }
+.sidebar {background-color: rgba(2, 113, 190, 1);padding: 8px;margin: 0px;max-height: 100%; overflow-y: scroll; overflow-x: hidden; padding-bottom: 32px;}
+/* .sidebarContent { color:#fff;padding: 8px;border-radius: 4px;margin: 0px;text-align: center; } */
+/* .sidebarContent ul{ padding:0;} */
+.content {height: 100%;position: relative;}
 
-.sidebar::-webkit-scrollbar { 
-    	display: none; 
-}
 
-.sidebar {
-    	background-color: rgba(2, 113, 190, 1);
-    	padding: 8px;
-    	margin: 0px;
-    	max-height: 100%;
-    	overflow-y: scroll;
-    	overflow-x: hidden;
-    	padding-bottom: 32px;
-}
 
-.sidebarContent {
-        color: #fff;
-        padding: 8px;
-        border-radius: 4px;
-        margin: 0px;
-        text-align: center;
-}
-
-.sidebarContent ul{
-	padding:0;
-}
-
-.content {
-    	height: 100%;
-    	position: relative;
-}
 
 table {
 	font-size:80%;
@@ -251,35 +206,28 @@ table {
 
 
 /** MAP - Container **/
-
-#map, #map * {
-    	.hwa;
-}
-
-#map {
-    	background-color: #fff;
-}
+canvas { opacity: 0.9;}
+#map, #map * {.hwa;}
+#map {background-color: #fff;}
 
 /** MAP - LayerSwitcher **/
-
-#layerswitcher, #layerswitcher * {
-    	s.hwa;
-}
+#layerswitcher, #layerswitcher * {s.hwa;}
 
 #layerswitcher {
-    	position: absolute;
+    position: absolute;
 	width: 200px;
-    	z-index: 10;
-    	top: 0px;
-    	right: 0px;
+    z-index: 10;
+    top: 0px;
+    right: 0px;
 	width: 25%/2;
 	height: 100%;
 	font-size: 80%;
-    	background-color: #fff;
-    	border-left: 2px solid rgba(2, 113, 190, 1);
-    	padding: 2px;
-    	margin: 0px;
-    	opacity: 0.5;
+    background-color:#1674B8;
+    opacity:0.8;
+    color: #fff;
+    border-color:rgba(255,255,255, 0.75);
+    border-left: 2px solid rgba(255,255,255, 0.75);
+    margin: 0px;
 	transition: opacity .25s ease-in-out;
    	-moz-transition: opacity .25s ease-in-out;
    	-webkit-transition: opacity .25s ease-in-out;
@@ -294,7 +242,6 @@ table {
 	height: 100%;
 	background-color: transparent;
 	border: 0px !important;
-	padding: 2px;  
 }
 
 #layerswitcher  ul {
@@ -308,9 +255,9 @@ table {
     	width: 100%;
 }
 
-#areaTypeSelector, #areaSelector, #areaSelector:disabled {
-	width: 100% !important;
-}
+ #areaTypeSelector, #areaSelector, #areaSelector:disabled {
+	width: 250px !important;
+} 
 
 #analyzer {
 	padding: 6px;
@@ -391,10 +338,9 @@ table {
 }
 
 
-#mpaResults {height:80%;}
 .mpa-table-name{font-weight:bold;color:#655898 !important;}
 .mpa-table-stat{font-style:italic;}
-.mpa-timer{position: absolute;top: 60px; font-size:90%}
+.mpa-timer{position: absolute;top: 60px; font-size:90%;top: 100px;}
 .mpa-formatswitcher{margin:0 auto;}
 .mpa-formatswitcher td {padding: 4px;}
 
@@ -512,7 +458,7 @@ ul.sources li{
 
 .mpaResultsTable-csv-upload {
     position: absolute;
-    top: 0px;
+    top: 45px;
     padding: 0px;
     border: none;
     width: 40px;
@@ -531,7 +477,7 @@ ul.sources li{
 
 .mpaResultsTable-pdf-export {
     position: absolute;
-    top: 0px;
+    top: 45px;
     left: 60px;
     padding: 0px;
     border: none;
@@ -552,7 +498,7 @@ ul.sources li{
 
 .mpaResultsTable-upload-loader {
     position: absolute;
-    top: 0px;
+    top: 45px;
     left: 120px;
     padding: 0px;
     border: none;
@@ -567,7 +513,7 @@ ul.sources li{
 
 .mpaResultsTable-upload-state {
     position: absolute;
-    top: 0px;
+    top: 45px;
     left: 145px;
     padding: 0px;
     border: none;

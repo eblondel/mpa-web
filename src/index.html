@@ -20,11 +20,14 @@
     <!-- MSIE. -->
     <!-- CSS stylesheets -->
     <!-- =============== -->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" type="text/css" href="css/main.css" />
+    
 
     <!-- Javascripts deps -->
     <!-- ================ -->
-
+    <!--Bootstrap-->
+    <script type="application/javascript" src="js/vendor/bootstrap.min.js"></script>
     <!-- JQuery main & plugins -->
     <script type="application/javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script type="application/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -35,37 +38,27 @@
     <script type="application/javascript" src="js/vendor/dataTables/dataTables.colReorder.min.js"></script>
     <script type="application/javascript" src="js/vendor/dataTables/dataTables.fixedColumns.min.js"></script>
     <script type="application/javascript" src="js/vendor/dataTables/dataTables.fixedHeader.min.js"></script>
-
-    <!--Bootstrap-->
-    <script type="application/javascript" src="js/vendor/bootstrap.js"></script>
-
     <!--basic templating-->
     <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js"></script>
-
     <!--OpenLayers 3-->
     <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.18.2/ol-debug.js"></script>
     <script type="application/javascript" src="js/vendor/ol3/ol3-loadingpanel.js"></script>
     <script type="application/javascript" src="js/vendor/ol3/ol3-zoomtomaxextent.js"></script>
     <script type="application/javascript" src="js/vendor/ol3/ol3-layerswitcher.js"></script>
     <script type="application/javascript" src="js/vendor/ol3/ol3-popup.js"></script>
-
     <!-- MPA app -->
     <script type="application/json" src="data/geodata.json"></script>
     <script type="application/javascript" src="js/main.js"></script>
-    
     <!--Navigation-->
     <script type="application/javascript" src="js/nav.js"></script>
-    
     <!--Canvg-->
     <script type="application/javascript" src="js/vendor/rgbcolor.js"></script>
     <script type="application/javascript" src="js/vendor/canvg.js"></script>	
-
     <!--Highcharts-->
     <script type="application/javascript" src="js/vendor/highcharts.js"></script>
     <script type="application/javascript" src="js/vendor/highcharts-canvas.js"></script>
     <script type="application/javascript" src="js/vendor/exporting.js"></script>
     <script type="application/javascript" src="js/resultCharts.js"></script>
-
     <!--PDF Generator-->
     <script type="application/javascript" src="js/vendor/base64.js"></script>
     <script type="application/javascript" src="js/vendor/jsPDF/jspdf.debug.js"></script>
@@ -85,70 +78,19 @@
     <!-- NoScript --><noscript><style type='text/css' scoped> html, body { overflow: hidden; } a, strong { display: inline !important; } a { color: #0000FF !important; text-decoration: underline !important; } a:visited { color: #800080 !important; } a:active { color: #FF0000 !important; } noscript, .noscript { display: block !important; position: absolute !important; z-index: 1000; width: 100%; height: 100%; left: 0px; top: 0px; background-color: #ffffff; color: #000; font-family: "Times New Roman"; font-size: 25px; text-align: center; margin: 0px; padding: 0px; } </style> <div class="noscript"> <br /> <br /> JavaScript is <strong>required</strong> to access this site. Please <a href="http://www.activatejavascript.org/">enable JavaScript</a> to access this site.</div></noscript>
    
     <div class="wrapper">
-    <!--<header class="navbar navbar-inverse">
-        <nav class="container-fluid">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="#">
-                    <h1 id="mpa-web">MPA-WEB</h1>
-                    <img alt="MPA-WEB" id="logo" src="img/logo-temp.png" />
-                </a>
-            </div>
-        </nav>
-    </header>-->
+      <div class="col-sm-12 pages">
     
-    <section class="col-sm-2 sidebar">
-        
-        <!-- Presentation -->
-        <div class="sidebarContent">
-		<p id="mpaTitle">Welcome to the <b>Protected Area Impact Map VRE Data Explorer</b></p>
-            	<p id="mpaSummary">This application allows users to query a rich database to report on the presence of natural features and human usages of managed areas (i.e.: Marine Protected Areas) relative to a target region of interest (i.e.: Exclusive Economic Zone). The target region to be reported on can be defined in the menu below or by selecting a region on the map. A custom area can also be uploaded to this service and reported on. The different datasets included in the report are listed on the right. The interactive map can be used to get an overview of the spatial distribution of different features.</p>
-        </div>
-
-        <!-- Web-form -->
-        <div class="sidebarContent" id="browser">
-            <form id="mpaForm">
-                <div class="selector-wrapper">
-                    <div id="areaTypeSelectorWrapper">
-                        <select id="areaTypeSelector">
-                            <option value="EEZ">Exclusive Economic Zones</option>
-                            <option value="ECOREGION">Ecoregions</option>
-                        </select>
-                    </div>
-                </div>
-                <br>
-                <div class="selector-wrapper">
-                    <p id="areaSelectorLoader" class="loader">
-                        <img alt="loading" src="img/glyphicons-366-restart@3x-inv.png" class="small" />
-                        <!--<br>Loading data...-->
-                    </p>
-                    <div id="areaSelectorWrapper">
-                        <select id="areaSelector" style="display:none;margin-top:10px;"></select>
-                    </div>
-                </div>
-                <br>
-                <input id="analyzer" type="button" value="Run Analysis" style="display:none;margin-top:10px;">
-            </form>
-        </div>
-
-        
-        <nav class="sidebarContent">
+        <!-- Topbar menu -->
+        <nav class="topbarContent">
             <ul>
-                <li class="active" data-where="#pageMap">Map Explorer</li>
-                <li data-where="#pageResults">Results</li>
-                <li data-where="#pageReports">Report</li>
+                <li data-where="#pageMap" onclick="myApp.openAboutDialog()">About</li>
+                <li data-where="#pageMap" onclick="myApp.openQueryDialog()">Query</li>
+                <li data-where="#pageResults" onclick="myApp.closeAboutDialog();myApp.closeQueryDialog();">Results</li>
+                <li data-where="#pageReports" onclick="myApp.closeAboutDialog();myApp.closeQueryDialog();">Report</li>
             </ul>
         </nav>
-	
-
-    </section>
     
-    <section class="col-sm-10 pages">
+        <!-- map -->
         <div class="page" id="pageMap">
             <div class="content">
                 <div id="map"></div>
@@ -184,7 +126,48 @@
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+    
+    <!-- Dialog contents -->
+    <div id="aboutDialog">
+        <p>Welcome to the <b>Protected Area Impact Map Data Explorer</b></p>
+        <p>This application allows users to query a rich database to report on the presence of natural features in marine managed areas such as protected areas. Users can also use this virtual research environment to query their own data.</p>
+        <p>Use the ‘Query’ button to select an area of interest, features and run an analysis. The output from the analysis will be presented interactively in the ‘Results’ and ‘Report’ pages. A static PDF report and a .csv file of the analysis can also be downloaded from these pages.</p>
+        <p>For more details about the data or the algorithm used in this application please read this document.</p>
+        <p><em>This work has received funding from the European Union's Horizon 2020 research and innovation programme under the BlueBRIDGE project (Grant agreement No 675680).</em></p>
+    </div>
+    
+    <div id="queryDialog">
+        <form id="mpaForm">
+            <!-- Zone layer -->
+            <b>Zone layer:</b><br><br>
+            <div class="selector-wrapper">
+                <div id="areaTypeSelectorWrapper">
+                    <select id="areaTypeSelector">
+                        <option value="EEZ">Exclusive Economic Zones</option>
+                        <option value="ECOREGION">Ecoregions</option>
+                    </select>
+                </div>
+            </div>
+            <br>
+            <div class="selector-wrapper">
+                <p id="areaSelectorLoader" class="loader">
+                    <img alt="loading" src="img/glyphicons-366-restart@3x-inv.png" class="small" />
+                </p>
+                <div id="areaSelectorWrapper">
+                    <select id="areaSelector" style="display:none;margin-top:10px;"></select>
+                </div>
+            </div>
+            <br>
+            <!-- Feature layers -->
+            <b>Feature layers:</b><br><br>
+            
+            <em> Selection of feature layers, coming soon!</em><br><br>
+            
+            <!-- Analyzer button -->
+            <input id="analyzer" type="button" value="Run Analysis" style="display:none;margin-top:10px;">
+        </form>
+    </div>
         
     <!-- Reporting templates -->
     <!-- Main report (MPA + buttons) -->
@@ -253,7 +236,6 @@
             
             <div class="mpa-report-feature-map">
                 <div id="{{metadata.id}}-map" style="width:100%;height:100%;"></div>
-                <div
             </div>
            
          </li>{{/features}}</ul>{{/features.length}}

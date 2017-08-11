@@ -1660,64 +1660,148 @@ var myApp = myApp || {};
 			return pdf;
 		}     
 
-        	/**
-        	 * myApp.configureViewer()
-        	 */
-        	myApp.configureViewer = function(){
-            		var this_ = this;
-            		this_.map = this_.initMap('map', true, false);
+        /**
+         * myApp.configureViewer()
+         */
+        myApp.configureViewer = function(){
+                var this_ = this;
+                this_.map = this_.initMap('map', true, false);
 
-    	    		//add MPA layer
-	    		var mpaLayerId = "W_mpa:mpa_original";
-	    		//this_.addLayer(true, 1, "allmpas", "Marine Protected Areas", mpaLayerId);
+                //add MPA layer
+            var mpaLayerId = "W_mpa:mpa_original";
+            //this_.addLayer(true, 1, "allmpas", "Marine Protected Areas", mpaLayerId);
 
-            
-            		//default selector
-            		this_.configureMapSelector("EEZ");
-            
-            		//do business once geomorphic feature data is loaded
-            		this_.fetchGeomorphicFeatures()
-            		.done(function(data){
-                    
-                		//add geomorphic Feature layers
-                		this_.addGeomorphicFeatureLayers();
+        
+                //default selector
+                this_.configureMapSelector("EEZ");
+        
+                //do business once geomorphic feature data is loaded
+                this_.fetchGeomorphicFeatures()
+                .done(function(data){
                 
-                		//analyzer button (trigger WPS)
-                		$("#analyzer").on("click", function(e){
-                    			var areaType = this_.$areaTypeSelector.select2("data")[0].id;
-                    			var areaId = this_.$areaSelector.select2("data")[0].id;
-                    			console.log("MPA analysis for "+areaType+" id ='"+areaId+"'");
-                    			this_.executeWPSRequest(areaType, areaId);
-                		});
-
-				$($("li[data-where='#pageMap']")).on("click", function(e){
-					$($("#map").find("canvas")).show();
-				});
-                
-                		// for testing table/reporting only
-                		if(this_.constants.DEBUG_REPORTING){
-                   
-                    			//go to report tab
-                    			$('#mpaTabs').show();
-                    			$('#mpaTabs').tabs();
-                    			$('#mpaTabs').tabs( "option", "active", 0 ); //go to table
-                    			$("#mpaResultsWrapper").show();
-                    			$("#mpaResultsCharts").show();
-                    			$("#mpaResultsWrapper").empty();
-                    			$("#mpaResultsCharts").empty();
-                    			$("#mpaResultsLoader").show();
-                    
-                    			//simulate execution
-                    			var url = "https://data.d4science.org/VDVyTjVmVkFkUzRjK1llZ25sSXY0cVJqUk41TmZVa0VHbWJQNStIS0N6Yz0-VLT";
-                    			this_.storeWPSOutputMetadata("EEZ", 8404, [-81.21527777999995, 20.36826343900003, -70.63139390299995, 30.355082680000066], 0, 0);
-                    			this_.getWPSOutputData(url);
-                		}
-            		})
-            		.fail(function() {
-            		    alert("geodata.json is not valid JSON data");
-            		});
+                    //add geomorphic Feature layers
+                    this_.addGeomorphicFeatureLayers();
             
-       		}
+                    //analyzer button (trigger WPS)
+                    $("#analyzer").on("click", function(e){
+                            var areaType = this_.$areaTypeSelector.select2("data")[0].id;
+                            var areaId = this_.$areaSelector.select2("data")[0].id;
+                            console.log("MPA analysis for "+areaType+" id ='"+areaId+"'");
+                            this_.executeWPSRequest(areaType, areaId);
+                            this_.closeQueryDialog();
+                    });
+
+            $($("li[data-where='#pageMap']")).on("click", function(e){
+                $($("#map").find("canvas")).show();
+            });
+            
+                    // for testing table/reporting only
+                    if(this_.constants.DEBUG_REPORTING){
+               
+                            //go to report tab
+                            $('#mpaTabs').show();
+                            $('#mpaTabs').tabs();
+                            $('#mpaTabs').tabs( "option", "active", 0 ); //go to table
+                            $("#mpaResultsWrapper").show();
+                            $("#mpaResultsCharts").show();
+                            $("#mpaResultsWrapper").empty();
+                            $("#mpaResultsCharts").empty();
+                            $("#mpaResultsLoader").show();
+                
+                            //simulate execution
+                            var url = "https://data.d4science.org/VDVyTjVmVkFkUzRjK1llZ25sSXY0cVJqUk41TmZVa0VHbWJQNStIS0N6Yz0-VLT";
+                            this_.storeWPSOutputMetadata("EEZ", 8404, [-81.21527777999995, 20.36826343900003, -70.63139390299995, 30.355082680000066], 0, 0);
+                            this_.getWPSOutputData(url);
+                    }
+                })
+                .fail(function() {
+                    alert("geodata.json is not valid JSON data");
+                });
+        
+        }
+
+		//===========================================================================================
+		//Widgets UIs
+		//===========================================================================================
+    
+        /**
+       * Init dialog
+       */
+       myApp.initDialog = function(id, title, classes, liIdx){
+             if(!classes){
+                classes  = {
+                  "ui-dialog": "ui-corner-all",
+                  "ui-dialog-titlebar": "ui-corner-all",
+                }
+             }
+             $( "#" + id ).dialog({
+                autoOpen: false,
+                title: title,
+                classes: classes,
+                show: {
+                    effect: "fade",
+                    duration: 300
+                },
+                hide: {
+                    effect: "fade",
+                    duration: 300
+                },
+                open: function( event, ui ) {
+                    $($("nav li")[liIdx]).addClass("active");
+                },
+                close: function( event, ui ) {
+                    $($("nav li")[liIdx]).removeClass("active");
+                }
+            });
+       }
+       
+       /**
+        * Open dialog
+        */
+        myApp.openDialog = function(id){
+            if(!$("#" + id).dialog("isOpen")){
+                $("#" + id).dialog("open");
+            }
+        }
+       
+       /**
+        * Close dialog
+        */
+       myApp.closeDialog = function(id){
+            if($("#" + id).dialog("isOpen")){
+                $("#" + id).dialog("close");
+            }
+       }
+        
+       /**
+       * Open 'About' dialog
+       */
+       myApp.openAboutDialog = function(){
+             this.closeQueryDialog();
+             this.openDialog("aboutDialog");
+       }
+       /**
+        * Close 'About' dialog
+        */
+       myApp.closeAboutDialog = function(){
+            this.closeDialog("aboutDialog");
+       }
+       
+       /**
+        * Open 'Query' dialog
+        */
+       myApp.openQueryDialog = function(){
+            this.closeAboutDialog();
+            this.openDialog("queryDialog");
+       }
+       
+       /**
+        * Close 'Query' dialog
+        */
+        myApp.closeQueryDialog = function(){
+            this.closeDialog("queryDialog");
+        }
+       
 		
 		//===========================================================================================
 		//application init
@@ -1732,8 +1816,13 @@ var myApp = myApp || {};
 		//area type selector
 		myApp.initAreaTypeSelector();
         
-        	//init map
-        	myApp.configureViewer();
+        //init map
+        myApp.configureViewer();
+        
+        //init widget about
+        myApp.initDialog("aboutDialog", "Welcome!", {"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, 0);
+        myApp.initDialog("queryDialog", "Query", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, 1);
+        myApp.openAboutDialog();
 
 	});
 	

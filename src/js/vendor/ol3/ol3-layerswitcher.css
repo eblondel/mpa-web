@@ -57,7 +57,7 @@
 }
 
 .layer-switcher-layergroup.shown:nth-child(3)  ul {
-    display: none !important;
+
 } .layer-switcher-layergroup:nth-child(3)  ul {
     display: block !important;
 }
@@ -65,18 +65,15 @@
 .layer-switcher-layergroup > label {
     font-weight: bold;
     text-decoration: none !important;
-    background-color: rgba(200, 200, 200, 0.75);
-    border: 2px solid rgba(200, 200, 200, 0.75);
-    height: 48px;
+    height:24px;
     width: 100%;
-    line-height: 48px;
+    line-height: 24px;
     font-size: 10px;
-    padding-left: 2px;
+    padding-left: 4px;
     padding-right: 2px;
     text-transform: uppercase;
+    border-bottom: 1px solid rgba(255,255,255, 0.75);
 } .layer-switcher-layergroup:nth-child(3) > label {
-    background-color: rgba(217, 237, 247, 0.75);
-    border: 2px solid rgba(217, 237, 247, 0.75);
 }
 
 .layer-switcher-layergroup > label:hover {
@@ -84,11 +81,9 @@
 }
 
 .layer-switcher-layergroup.shown > label {
-    background-color: rgba(217, 237, 247, 0.75);
-    border: 2px solid rgba(217, 237, 247, 0.75);
+
 } .layer-switcher-layergroup.shown:nth-child(3) > label {
-    background-color: rgba(200, 200, 200, 0.75);
-    border: 2px solid rgba(200, 200, 200, 0.75);
+
 }
 
 .layer-switcher-layerinfo {
@@ -101,7 +96,7 @@
 }	
 
 .layer-switcher-layer {
-	margin-left:0px;
+	margin-left: 6px;
 }
 
 .layer-switcher-layer  > label{
@@ -118,4 +113,8 @@
 
 .layer-switcher-layer div img {
     display: none !important;
+}
+
+.layer-switcher-layer input {
+    vertical-align: text-bottom;
 }
