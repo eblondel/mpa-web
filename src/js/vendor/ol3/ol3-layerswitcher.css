@@ -112,7 +112,7 @@
 }
 
 .layer-switcher-layer div img {
-    display: none !important;
+   float: right;
 }
 
 .layer-switcher-layer input {

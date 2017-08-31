@@ -259,9 +259,14 @@ canvas { opacity: 0.9;}
 	width: 250px !important;
 } 
 
+#features-checkboxes ul{ display: flex; flex-wrap: wrap; list-style-type: none; margin-bottom: 0px; padding-left: 0; }
+#features-checkboxes ul li{ flex: 0 0 calc(50% - 10 px); margin: 5px; padding: 5px 0; text-align: center; box-sizing: border-box; }
+#features-checkboxes ul li input{vertical-align: top; margin-right:2px;}
+
 #analyzer {
 	padding: 6px;
-	margin: 2px;
+    margin: 0px 35%;
+    width: 20%;
 	display: inline-block;
 	color: #111 !important;
 	background-color: #fff;

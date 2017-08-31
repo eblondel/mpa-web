@@ -19,23 +19,23 @@ var myApp = myApp || {};
 			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
 			OVERLAY_GROUP_NAMES: [{name: "Geomorphic features"},{name: "Base overlays"}],
-            		MAP_ZOOM: 3,
+            MAP_ZOOM: 3,
 			MAP_PROJECTION: 'EPSG:4326',
-            		OGC_WMS_NS: "W_mpa",
-            		OGC_WMS_SUFFIX: "geo_fea_",
+            OGC_WMS_NS: "W_mpa",
+            OGC_WMS_SUFFIX: "geo_fea_",
 			OGC_WMS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wms",
 			OGC_WFS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			//OGC_WFS_BBOX: [-180, -90, 180, 90],
-           		OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
-			OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V2",
+           	OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+            OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V3_2",
 			OGC_WPS_OUTPUTDATA_HTTPS: true,
-            		OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
+            OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
 			D4S_HOMELIBRARY_BASEURL: "https://workspace-repository.d4science.org/home-library-webapp/rest",
 			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
-            		DEBUG_REPORTING: false
+            DEBUG_REPORTING: false
 		}
 		
 		//Utils
@@ -99,7 +99,7 @@ var myApp = myApp || {};
         		line = line.slice(0, -1);
         		str += line + '\r\n';
     			
-			//add data
+                //add data
     			for (var i = 0; i < array.length; i++) {
         			var line = '';
             			for (var index in array[i]) {
@@ -266,9 +266,9 @@ var myApp = myApp || {};
 			var processFolder =  this_.processMetadata.areaType + "-" + this_.processMetadata.areaId + "-" + this.processMetadata.dateTime;
 			var processFolderPath = folderPath + "/" + processFolder;
 			$.ajax({ 
-            		    	type: 'GET',
-             		   	url: this.constants.D4S_HOMELIBRARY_BASEURL + "/List?absPath=" + folderPath + "&gcube-token=" + this_.securityToken,
-                		success: function(listResponse){
+                    type: 'GET',
+             		url: this.constants.D4S_HOMELIBRARY_BASEURL + "/List?absPath=" + folderPath + "&gcube-token=" + this_.securityToken,
+                	success: function(listResponse){
 					
 					//check if exist
 					var deferredFolder = $.Deferred();
@@ -503,77 +503,88 @@ var myApp = myApp || {};
 		//Geomorphic Features
 		//==========================================================================================
 		myApp.sanitizeMetadataElement = function(str){
-            		str = str.replace(/\s{2,}/g, ' ');
-            		str = str.replace(/(\r\n|\n|\r)/gm, "");
-            		return str;
-        	}
+            str = str.replace(/\s{2,}/g, ' ');
+            str = str.replace(/(\r\n|\n|\r)/gm, "");
+            return str;
+        }
         
-        	myApp.fetchGeomorphicFeatureMetadata = function(metadataId){
-            		var this_ = this;
-            		var deferred = $.Deferred();
-            		var request =  this.constants.OGC_CSW_BASEURL + "?service=CSW&request=GetRecordById&Version=2.0.2";
-            		request += "&outputSchema=http%3A//www.isotc211.org/2005/gmd";
-            		request += "&elementSetName=full";
-            		request += "&id=" + metadataId;
-            		console.log("Performing CSW GetRecord metadata request");
-            		console.log(request);
-            		$.ajax({ 
-            		    	type: 'GET',
-             		   	url: request,
-                		contentType: 'application/json',
-                		success: function(xml){
+        myApp.fetchGeomorphicFeatureMetadata = function(metadataId){
+                var this_ = this;
+                var deferred = $.Deferred();
+                var request =  this.constants.OGC_CSW_BASEURL + "?service=CSW&request=GetRecordById&Version=2.0.2";
+                request += "&outputSchema=http%3A//www.isotc211.org/2005/gmd";
+                request += "&elementSetName=full";
+                request += "&id=" + metadataId;
+                console.log("Performing CSW GetRecord metadata request");
+                console.log(request);
+                $.ajax({ 
+                        type: 'GET',
+                    url: request,
+                    contentType: 'application/json',
+                    success: function(xml){
+            
+                        //get abstract information
+                        var mdAbstract = "";
+                        var xml_abstract = $(xml).find("gmd\\:abstract, abstract");
+                        if(xml_abstract.length > 0){
+                            mdAbstract = this_.sanitizeMetadataElement(xml_abstract[0].textContent);
+                        }else{
+                            mdAbstract = "No abstract available";
+                        }
                 
-                    		//get abstract information
-                    		var mdAbstract = "";
-                    		var xml_abstract = $(xml).find("gmd\\:abstract, abstract");
-                    		if(xml_abstract.length > 0){
-                       			mdAbstract = this_.sanitizeMetadataElement(xml_abstract[0].textContent);
-                    		}else{
-                        		mdAbstract = "No abstract available";
-                    		}
-                    
-                    		//get citation information
-                    		var mdCitation = "";
-                    		var xml_citation = $(xml).find("gmd\\:credit, credit");
-                    		if(xml_citation.length > 0){
-                    		    mdCitation = this_.sanitizeMetadataElement(xml_citation[0].textContent);
-                    		}else{
-                    		    mdCitation = "No reference available";
-                   		 }
-                    
-                    		for(var i=0;i<this_.geomorphicFeatures.length;i++){
-                    		    var id = metadataId.split("geo_fea_")[1];
-                    		    if(this_.geomorphicFeatures[i].id === id){
-                     		       this_.geomorphicFeatures[i]["description"] = mdAbstract;
-                     		       this_.geomorphicFeatures[i]["reference"] = mdCitation;
-                     		       break;
-                      		  }
-                    		}
-                    
-                    		deferred.resolve();
-                		}
-            		});
-            		return deferred.promise();
-        	}
+                        //get citation information
+                        var mdCitation = "";
+                        var xml_citation = $(xml).find("gmd\\:credit, credit");
+                        if(xml_citation.length > 0){
+                            mdCitation = this_.sanitizeMetadataElement(xml_citation[0].textContent);
+                        }else{
+                            mdCitation = "No reference available";
+                     }
+                
+                        for(var i=0;i<this_.geomorphicFeatures.length;i++){
+                            var id = metadataId.split("geo_fea_")[1];
+                            if(this_.geomorphicFeatures[i].id === id){
+                               this_.geomorphicFeatures[i]["description"] = mdAbstract;
+                               this_.geomorphicFeatures[i]["reference"] = mdCitation;
+                               break;
+                          }
+                        }
+                
+                        deferred.resolve();
+                    }
+                });
+                return deferred.promise();
+        }
         
-        	myApp.fetchGeomorphicFeatures = function(){
+        myApp.fetchGeomorphicFeatures = function(){
         
-            		var deferred = $.Deferred();
+              var deferred = $.Deferred();
         
-			var this_ = this;
-			$.getJSON(this.constants.GEO_DATA, function(data){
+			  var this_ = this;
+			  $.getJSON(this.constants.GEO_DATA, function(data){
 				this_.geomorphicFeatures = data;
-                		var promises = new Array();
-                		for(var i=0;i<data.length;i++){
-                		    var metadataId = this_.constants.OGC_WMS_SUFFIX + data[i].id;
-                		    promises.push(this_.fetchGeomorphicFeatureMetadata(metadataId));
-                		}
-                		$.when(promises).done(function(){
-                		    deferred.resolve(this_.geomorphicFeatures);
-                		});
+                
+                //build query interface
+                var ulHtml = '<ul>';
+                for(var i=0;i<data.length;i++){
+                    var item = data[i];
+                    var liHtml = '<li><input id="'+item.id+'" type="checkbox" onclick="myApp.toggleGeomorphicFeatureLayer(\''+item.id+'\')"/>'+item.title+'</li>';
+                    ulHtml += liHtml;
+                }
+                $("#features-checkboxes").html(ulHtml);
+                
+                //fetch geomorphic feature metadata
+                var promises = new Array();
+                for(var i=0;i<data.length;i++){
+                    var metadataId = this_.constants.OGC_WMS_SUFFIX + data[i].id;
+                    promises.push(this_.fetchGeomorphicFeatureMetadata(metadataId));
+                }
+                $.when(promises).done(function(){
+                    deferred.resolve(this_.geomorphicFeatures);
+                });
 			});
             
-            		return deferred.promise();
+            return deferred.promise();
 		}
 		
 		//Area type selector
@@ -669,7 +680,7 @@ var myApp = myApp || {};
 			var overlays = [geomorphicLayers, baseOverlays];
 		
 			var defaultMapExtent = ((this.constants.OGC_WFS_BBOX)? this.constants.OGC_WFS_BBOX : [-180, -90, 180, 90]);
-			var defaultMapZoom = ((this.constants.OGC_WFS_BBOX)? 5 : 2);
+			var defaultMapZoom = ((this.constants.OGC_WFS_BBOX)? 5 : this.constants.MAP_ZOOM);
             
             		if(main){
                 		this.baseLayers = baseLayers;
@@ -746,6 +757,7 @@ var myApp = myApp || {};
 			request += '&SCALE=139770286.4465912'; //to investigate
 			request += '&FORMAT=image/png';
 			request += '&TRANSPARENT=true';
+            request += '&WIDTH=30';
 			
 			lyr.legendGraphic = request;
 		}
@@ -781,6 +793,7 @@ var myApp = myApp || {};
 				visible : true
 			});
 			this.setLegendGraphic(layer);
+            layer.id = id;
 			layer.showLegendGraphic = true;
             
 			
@@ -821,14 +834,20 @@ var myApp = myApp || {};
 				visible : (main? gfeature.visible : true)
 			});
 			myApp.setLegendGraphic(layer);
+            layer.id = gfeature.id;
 			layer.showLegendGraphic = true;
 			layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[0];
             
-            		if(main){
-                		this.overlays[0].getLayers().push(layer);
-            		}else{
-               		 	this.featureMap.getLayers().push(layer);
-            		}
+            if(main){
+                this.overlays[0].getLayers().push(layer);
+            }else{
+                this.featureMap.getLayers().push(layer);
+            }
+            
+            //visibility event
+            layer.on("change:visible",function(e){
+                $("#" + e.target.id).prop("checked", !e.oldValue);
+            });
             
 		}
 		
@@ -867,6 +886,31 @@ var myApp = myApp || {};
 			}
 			return target;
 		}
+        
+        /**
+         * Toggles geomorphic Feature layer
+         * @param id the geomorphic feature id
+         */
+        myApp.toggleGeomorphicFeatureLayer = function(id){
+            var layer = this.getLayerByProperty(id, "id");
+            if(layer.getVisible()){
+                layer.setVisible(false);
+            }else{
+                layer.setVisible(true);
+            }
+        }
+        
+        /**
+         * Get feature selection
+         */
+        myApp.getSelectedFeatures = function(){
+            var selection = new Array();
+            var inputs = $("#features-checkboxes").find("input");
+            for(var i=0;i<inputs.length;i++){
+                if(inputs[i].checked) selection.push(inputs[i].id);
+            }
+            return(selection);
+        }
 		
 		/**
 		 * Configures the map layer dynamic selector based on WFS
@@ -968,7 +1012,7 @@ var myApp = myApp || {};
 								this_.selectInteraction.getFeatures().clear();
 								this_.areaExtent = null;
 								this_.map.getView().fit(this_.map.getView().getProjection().getExtent(), this_.map.getSize());
-								this_.map.getView().setZoom(2);
+								this_.map.getView().setZoom(this_.constants.MAP_ZOOM);
 								$("#analyzer").hide();
 							});
 							
@@ -1122,17 +1166,20 @@ var myApp = myApp || {};
 			$('#mpaTabs').tabs( "option", "active", 0 ); //go to table
 		
 			$("#mpaResultsWrapper").show();
-            		$("#mpaResultsCharts").show();
+            $("#mpaResultsCharts").show();
 			$("#mpaResultsWrapper").empty();
-            		$("#mpaResultsCharts").empty();
+            $("#mpaResultsCharts").empty();
 			$("#mpaResultsLoader").show();
 					
 			//building WPS GET request
 			var wpsRequest = this.constants.OGC_WPS_BASEURL;
 			wpsRequest += "&Identifier="+this.constants.OGC_WPS_IDENTIFIER,
 			wpsRequest += "&gcube-token="+this.securityToken;
-			wpsRequest += "&DataInputs=areaType="+areaType+";areaId="+areaId;
-			
+			//wpsRequest += "&DataInputs=areaType="+areaType+";areaId="+areaId;
+            var selectedFeatures = this.getSelectedFeatures();
+            var selected_data_feature = (selectedFeatures.length == 0)? "NA" : encodeURIComponent(selectedFeatures.join(','));
+			wpsRequest += "&DataInputs=MPA_Shapefile_Url=https%3A%2F%2Fabsences.zip;Marine_Boundary="+areaType+";Region_Id="+areaId+";Selected_Data_Feature="+selected_data_feature;
+            
 			this_.storeWPSOutputMetadata(areaType, areaId, this_.sourceFeatures.getFeatureById(areaId).getGeometry().getExtent(), t1, undefined);
 			
 			//execute WPS Get request
