@@ -135,8 +135,8 @@ nav ul li.active { background-color: #0C71B8;}
 #aboutDialog p { font-size:85%; }
 .dialog-title { text-align:center; }
 .ui-dialog { border-radius:0px; border-color:#fff; background-color:#1674B8; opacity:0.8; color:#fff; padding:0px;}
-.about-dialog  {width:400px !important; }
-.query-dialog  {width:600px !important; height:400px !important;}
+.about-dialog  {width:400px !important; top: 100px !important;}
+.query-dialog  {width:650px !important; height:400px !important;}
 .ui-dialog  .ui-dialog-content { color:#fff; }
 .ui-dialog .ui-dialog-titlebar{background-color:#1674B8; opacity:0.8; color:#fff; border-radius:0px;}
 .partner-logo{ height:40px; margin-top:10px; margin-right:5px;}

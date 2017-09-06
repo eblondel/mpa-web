@@ -1014,6 +1014,10 @@ var myApp = myApp || {};
 								this_.map.getView().fit(this_.map.getView().getProjection().getExtent(), this_.map.getSize());
 								this_.map.getView().setZoom(this_.constants.MAP_ZOOM);
 								$("#analyzer").hide();
+								
+								$($("li[data-where='#pageResults']")[0]).hide();
+								$($("li[data-where='#pageReports']")[0]).hide();
+
 							});
 							
 							//hide loader
@@ -1194,6 +1198,9 @@ var myApp = myApp || {};
 					var endStr = t2.toISOString();
 					this_.processMetadata.dateTime = (endStr.split("T")[0] + "" + endStr.split("T")[1].split(".")[0]).replace(/-/g,"").replace(/:/g,"");
 					
+					$($("li[data-where='#pageResults']")[0]).show();
+					$($("li[data-where='#pageReports']")[0]).show();
+
 					//process output data
                     			//Recent DataMiner nows handle logs as 1st Result, result is stored as 2d Result (!)
 					var dataUrl = $($(xml).find('d4science\\:Data, Data')[1]).text();
@@ -1208,6 +1215,8 @@ var myApp = myApp || {};
                     			$("#areaSelector").prop("disabled", false);
                     			$("#analyzer").attr("disabled",false);
                     			$("#mpaResultsLoader").hide();
+					$($("li[data-where='#pageResults']")[0]).show();
+					$($("li[data-where='#pageReports']")[0]).show();
 				}
 			});
 		}
