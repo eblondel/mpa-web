@@ -133,13 +133,15 @@
         <p>Welcome to the <b>Protected Area Impact Map Data Explorer</b></p>
         <p>This application allows users to query a rich database to report on the presence of natural features in marine managed areas such as protected areas. Users can also use this virtual research environment to query their own data.</p>
         <p>Use the ‘Query’ button to select an area of interest, features and run an analysis. The output from the analysis will be presented interactively in the ‘Results’ and ‘Report’ pages. A static PDF report and a .csv file of the analysis can also be downloaded from these pages.</p>
-        <p>For more details about the data or the algorithm used in this application please read this document.</p>
+       <!-- <p>For more details about the data or the algorithm used in this application please read this document.</p> -->
+		<p>A detailed introductory guide to the Protected Area Impact Maps VRE is available at this <a href="http://arcg.is/2yBE3wU" target="_blank" style="color:#0000FF">link.</a></p>
         <p><em>This work has received funding from the European Union's Horizon 2020 research and innovation programme under the BlueBRIDGE project (Grant agreement No 675680).</em></p>
-        <p class="partner-logos">
-            <img src="img/bluebridge.png" alt="Bluebridge" class="partner-logo"/>
-            <img src="img/fao.png" alt="UN-FAO" class="partner-logo"/>
-            <img src="img/grida.png" alt="UNEP GRID-ARENDAL" class="partner-logo"/>
-        </p>
+         <hr style="width:100%; color:white;padding:0px 0px 0px 0px;margin-bottom:0px;" />
+        <span style="padding:0px 0px 0px 0px;width:100%">
+           <!-- <img src="img/bluebridge.png" alt="Bluebridge" class="partner-logo" style="height: auto; width: 30%; float:left;padding:0px 0px 0px 0px;"/> -->
+            <img src="img/logoall.png" alt="VRE-Logo" class="partner-logo" style="height: auto; width: 100%;padding:0px 0px -10px 0px;"/>
+           <!--  <img src="img/grida.png" alt="UNEP GRID-ARENDAL" class="partner-logo" style="height: auto; width: 40%;float:right;padding:0px 0px 0px 0px;"/> -->
+        </span>
     </div>
     
     <div id="queryDialog">
@@ -215,13 +217,21 @@
     <!-- Feature report -->
     <script id="mpa-report-template2" type="x-tmpl-mustache">
     
-      {{#features.length}}<ul class="mpa-report-featurelist">{{#features}}
-        <li class="mpa-report-feature">
+      {{#features.length}}<ul class="mpa-report-featurelist" >{{#features}}
+        <li class="mpa-report-feature" style="background:#BBE0F3;border-radius:0px;">
             <div class="mpa-report-feature-wrapper">
                 <h3 class="mpa-report-feature-title"><span style="color:#000;">Feature:</span> {{metadata.title}}</h3>
                 
                 <div class="mpa-report-feature-stats">
-                    <p><ul><li class="mpa-report-indicator"><b>Area in <span class="mpa-report-feature-target">{{target.name}}</span>:</b> {{data.surface}} {{data.surfaceUnit}}</li><li class="mpa-report-indicator"><b>Percentage of <span class="mpa-report-feature-source">{{metadata.title}}</span> in <span class="mpa-report-feature-target">{{target.name}}</span>: </b> {{data.indicator1}} %</li></ul></p>
+                    <p>
+					<ul>
+					<!-- <li class="mpa-report-indicator"><b>Area in <span class="mpa-report-feature-target">{{target.name}}</span>:</b> {{data.surface}} {{data.surfaceUnit}}</li>
+					<li class="mpa-report-indicator"><b>Percentage of <span class="mpa-report-feature-source">{{metadata.title}}</span> in <span class="mpa-report-feature-target">{{target.name}}</span>: </b> {{data.indicator1}} %</li>-->
+					<li class="mpa-report-indicator"><b>Area of <span class="mpa-report-feature-source">{{metadata.title}}</span> in {{name}}: </b>{{data.surface}} {{data.surfaceUnit}}</li>
+					<li class="mpa-report-indicator"><b>Percentage of <span class="mpa-report-feature-source">{{metadata.title}}</span> in <span class="mpa-report-feature-target">{{target.name}}</span> in {{name}}: </b> {{data.indicator1}} %</li>
+					
+					</ul>
+					</p>
                 </div>
 
                 <div class="mpa-report-feature-desc">

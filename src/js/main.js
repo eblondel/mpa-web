@@ -18,24 +18,24 @@ var myApp = myApp || {};
 		myApp.constants = {
 			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
-			OVERLAY_GROUP_NAMES: [{name: "Geomorphic features"},{name: "Base overlays"}],
-            MAP_ZOOM: 3,
+			OVERLAY_GROUP_NAMES: [{name: "Geomorphic Features"},{name: "Marine Protected Areas"},{name: "Base overlays"}],
+            		MAP_ZOOM: 3,
 			MAP_PROJECTION: 'EPSG:4326',
-            OGC_WMS_NS: "W_mpa",
-            OGC_WMS_SUFFIX: "geo_fea_",
+            		OGC_WMS_NS: "W_mpa",
+            		OGC_WMS_SUFFIX: "geo_fea_",
 			OGC_WMS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wms",
 			OGC_WFS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			//OGC_WFS_BBOX: [-180, -90, 180, 90],
-           	OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
-            OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V3_2",
+           		OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+            		OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V3_2",
 			OGC_WPS_OUTPUTDATA_HTTPS: true,
-            OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
+            		OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
 			D4S_HOMELIBRARY_BASEURL: "https://workspace-repository.d4science.org/home-library-webapp/rest",
 			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
-            DEBUG_REPORTING: false
+            		DEBUG_REPORTING: false
 		}
 		
 		//Utils
@@ -672,12 +672,15 @@ var myApp = myApp || {};
 				'title': this.constants.OVERLAY_GROUP_NAMES[0].name,
 				layers: [ ],
 			});
-
-			var baseOverlays = new ol.layer.Group({
+			var mpaOverlays = new ol.layer.Group({
 				'title': this.constants.OVERLAY_GROUP_NAMES[1].name,
 				layers: [ ],
 			});
-			var overlays = [geomorphicLayers, baseOverlays];
+			var baseOverlays = new ol.layer.Group({
+				'title': this.constants.OVERLAY_GROUP_NAMES[2].name,
+				layers: [ ],
+			});
+			var overlays = [geomorphicLayers, mpaOverlays, baseOverlays];
 		
 			var defaultMapExtent = ((this.constants.OGC_WFS_BBOX)? this.constants.OGC_WFS_BBOX : [-180, -90, 180, 90]);
 			var defaultMapZoom = ((this.constants.OGC_WFS_BBOX)? 5 : this.constants.MAP_ZOOM);
@@ -929,6 +932,8 @@ var myApp = myApp || {};
 			$("#areaSelectorWrapper").hide();
 			$("#areaSelectorLoader").show();
 			
+			$("#areaTypeSelector").prop("disabled", true);
+
 			//prepare the WFS request
 			this_.areaFeatureType = null;
 			this_.intersectFeatureType = null;
@@ -944,7 +949,7 @@ var myApp = myApp || {};
 			case "ECOREGION":
 				this_.areaFeatureType = "W_mpa:marine_ecoregions";
 				this_.intersectFeatureType = "W_mpa:intersect_mpa_marine_ecoregions_v1",
-				this_.areaIdProperty = "ecoregion";
+				this_.areaIdProperty = "ecoid";
 				this_.areaLabelProperty = "ecoregion";
 				break;
 			}
@@ -1023,6 +1028,9 @@ var myApp = myApp || {};
 							//hide loader
 							$("#areaSelectorLoader").hide();
 
+							$("#areaTypeSelector").prop("disabled", false);
+
+
 						},
 						error: function(){
 							console.log("failed to query WFS");
@@ -1031,6 +1039,9 @@ var myApp = myApp || {};
 							this_.$areaTypeSelector.val('');
 							this_.$areaTypeSelector.trigger('change');
 							$("#areaSelectorLoader").hide();
+
+							$("#areaTypeSelector").prop("disabled", false);
+
 						}
 					});
 				}
@@ -1047,7 +1058,7 @@ var myApp = myApp || {};
 					title : title,
 					source : this_.sourceFeatures
 				});
-				this_.overlays[1].getLayers().push(vectorLayer);
+				this_.overlays[2].getLayers().push(vectorLayer);
 				
 				//select interactions
 				//-------------------
@@ -1208,8 +1219,8 @@ var myApp = myApp || {};
 				},
 				error : function (xhr, ajaxOptions, thrownError){
 					console.log("Error while executing WPS request");
-					$("#mpaResultsWrapper").append("<p><b>The MPA analysis returned an error...</b></p>");
-					$("#mpaResultsWrapper").append("<p style='color:red;'>GET Request '"+wpsRequest+"' failed!</p>");
+					$("#mpaResultsWrapper").append("<p><b>Sorry!</b>Your computation could not be performed…</br></br>Erors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm here (link) and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
+					$("#mpaResultsWrapper").append("<p style='color:black;'>GET Request '"+wpsRequest+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
                     			$("#areaTypeSelector").prop("disabled", false);
                     			$("#areaSelector").prop("disabled", false);
@@ -1265,15 +1276,17 @@ var myApp = myApp || {};
 				//prepare dtColumns
 				var columns = Object.keys(this_.processData[0]);
 				this_.columnNames = ["id", "Name", "Type", "Area"];
-				if(typeof this_.geomorphicFeatures != "undefined"){
-                        		for(var i=0;i<this_.geomorphicFeatures.length;i++){
-                            			var gtype = this_.geomorphicFeatures[i];
-                            			if(columns.indexOf(gtype.id) != - 1){
+				for(var i=0;i<columns.length;i++){
+					var column = columns[i];
+                        		for(var j=0;j<this_.geomorphicFeatures.length;j++){
+                            			var gtype = this_.geomorphicFeatures[j];
+                            			if(gtype.id === column){
                                 			this_.columnNames.push(gtype.title);
-                            			}
-                       			}
-				}
-                    
+							break;
+						}
+                            		}
+                       		}
+
 
 				//html markup
                 		//-----------
@@ -1724,8 +1737,8 @@ var myApp = myApp || {};
                 this_.map = this_.initMap('map', true, false);
 
                 //add MPA layer
-            var mpaLayerId = "W_mpa:mpa_original";
-            //this_.addLayer(true, 1, "allmpas", "Marine Protected Areas", mpaLayerId);
+            var mpaLayerId = "W_mpa:geo_fea_mpa";
+            this_.addLayer(true, 1, "allmpas", "Marine Protected Areas", mpaLayerId);
 
         
                 //default selector
@@ -1783,7 +1796,7 @@ var myApp = myApp || {};
         /**
        * Init dialog
        */
-       myApp.initDialog = function(id, title, classes, liIdx){
+       myApp.initDialog = function(id, title, classes, liIdx, my, at){
              if(!classes){
                 classes  = {
                   "ui-dialog": "ui-corner-all",
@@ -1794,7 +1807,7 @@ var myApp = myApp || {};
                 autoOpen: false,
                 title: title,
                 classes: classes,
-		position: { my: "center", at: "top", of: window },
+		position: { my: my, at: at, of: window },
                 show: {
                     effect: "fade",
                     duration: 300
@@ -1877,8 +1890,8 @@ var myApp = myApp || {};
         myApp.configureViewer();
         
         //init widget about
-        myApp.initDialog("aboutDialog", "Welcome!", {"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, 0);
-        myApp.initDialog("queryDialog", "Query", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, 1);
+        myApp.initDialog("aboutDialog", "Welcome!", {"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, 0, "center", "top+35%");
+        myApp.initDialog("queryDialog", "Query", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, 1, "center", "top+35%");
         myApp.openAboutDialog();
 
 	});
