@@ -2,9 +2,9 @@
  * MPA Analysis web-application by UN FAO & UNEP GRID-ARENDAL
  * Application development powered by FAO FIGIS team, and funded by BlueBridge EC project
  *
- * @author Emmanuel Blondel GIS Expert, Marine web-information systems Developer <emmanuel.blondel@fao.org> (alternate email <emmanuel.blondel1@gmail.com>)
- * @author Levi Westerveld Project Assistant <levi.westerveld@grida.no>
- *
+ * @author Emmanuel Blondel GIS Expert, Marine web-information systems Developer, UN-FAO <emmanuel.blondel@fao.org> (alternate email <emmanuel.blondel1@gmail.com>)
+ * @author Levi Westerveld Project Assistant, GRID-ARENDAL <levi.westerveld@grida.no>
+ * @author Debhasish Bhakta Project Assistant, GRID-ARENDAL <debhasish.bhakta@grida.no>
  */
 
 var myApp = myApp || {};
@@ -23,12 +23,13 @@ var myApp = myApp || {};
 			MAP_PROJECTION: 'EPSG:4326',
             		OGC_WMS_NS: "W_mpa",
             		OGC_WMS_SUFFIX: "geo_fea_",
-			OGC_WMS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wms",
-			OGC_WFS_BASEURL: "https://geoserver-protectedareaimpactmaps.d4science.org/geoserver/wfs",
+			OGC_WMS_BASEURL: "https://paim.d4science.org/geoserver/wms",
+			OGC_WFS_BASEURL: "https://paim.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			//OGC_WFS_BBOX: [-180, -90, 180, 90],
-           		OGC_WPS_BASEURL: "https://dataminer-cluster1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
-            		OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V3_2",
+           		//OGC_WPS_BASEURL: "https://dataminer-cloud1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+            		OGC_WPS_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+					OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V3",
 			OGC_WPS_OUTPUTDATA_HTTPS: true,
             		OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
@@ -1219,7 +1220,7 @@ var myApp = myApp || {};
 				},
 				error : function (xhr, ajaxOptions, thrownError){
 					console.log("Error while executing WPS request");
-					$("#mpaResultsWrapper").append("<p><b>Sorry!</b>Your computation could not be performed…</br></br>Erors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm here (link) and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
+					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed…</br></br>Erors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
 					$("#mpaResultsWrapper").append("<p style='color:black;'>GET Request '"+wpsRequest+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
                     			$("#areaTypeSelector").prop("disabled", false);
@@ -1305,8 +1306,8 @@ var myApp = myApp || {};
                     
 			   	//value format (absolute value or %)
 				var formatSwitcherHtml = '<table class="mpa-formatswitcher"><tr>';
-                		formatSwitcherHtml += '<td><input id="surfaceSwitcher" type="radio" name="formatSwitcher" value="surface" checked onclick="myApp.renderStatistics()">Surface (km²)</td>';
-				formatSwitcherHtml += '<td><input id = "percentSwitcher" type="radio" name="formatSwitcher" value="percentage" onclick="myApp.renderStatistics()">% of geomorphic feature</td>';
+                		formatSwitcherHtml += '<td><input id="surfaceSwitcher" type="radio" name="formatSwitcher" value="surface" onclick="myApp.renderStatistics()">Surface (km²)</td>';
+				formatSwitcherHtml += '<td><input id = "percentSwitcher" type="radio" name="formatSwitcher" value="percentage" checked onclick="myApp.renderStatistics()">% of geomorphic feature</td>';
 				formatSwitcherHtml += '</tr></table>';
 				$("#mpaResultsWrapper").append(formatSwitcherHtml);
 
@@ -1375,7 +1376,7 @@ var myApp = myApp || {};
 				},
 				error : function (xhr, ajaxOptions, thrownError){
 					console.log("Error while fetching WPS output data");
-					$("#mpaResultsWrapper").append("<p>The MPA analysis returned an error...</p>");
+					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed…</br></br>Erors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
 					$("#mpaResultsWrapper").append("<p style='color:red;'>GET Request '"+url+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
                     			$("#areaTypeSelector").prop("disabled", false);
@@ -1457,8 +1458,16 @@ var myApp = myApp || {};
                 		id : data.id,
                 		name: data.name,
                 		type: data.type,
-                		isMPA: data.type == "MPA",
+                		isMPA: data.type == "MPA",				
 				isSingleMPA: data.name != "All MPAs" && data.type == "MPA",
+				
+				
+				isMpaType: data.type != "MPA",								
+				isAllMPA: data.name == "All MPAs",
+				isEEZType: data.type == "EEZ",
+				isEcoType: data.type == "ECOREGION",
+				
+				
 				isEEZ: this.processMetadata.areatype == "EEZ",
 				isECOREGION: this.processMetadata.areatype == "ECOREGION",
                 		surface: this.renderStatValue(data.surface, "surface"),
@@ -1544,7 +1553,7 @@ var myApp = myApp || {};
                 		},
                 		error: function(){
                     			console.log("failed to query WFS");
-                    			$("#mpaReportMainWrapper").append("<p>The MPA analysis returned an error...</p>");
+                    $("#mpaReportMainWrapper").append("The MPA analysis returned an error...");
 					$("#mpaReportMainWrapper").append("<p style='color:red;'>GET Request '"+intersectRequest+"' failed!</p>");
                     			$("#mpaReportLoader").hide(); 
                 		}
@@ -1700,9 +1709,9 @@ var myApp = myApp || {};
     	 			var elem = document.getElementById("mpaResultsTable");
     				var res = pdf.autoTableHtmlToJson(elem);
     				pdf.autoTable(this_.columnNames.slice(1), res.data,{
-					   startX: 10,
+					   startX: 0,
 					   startY: idx,
-					   styles: {overflow: 'linebreak', columnWidth: 'wrap', cellPadding: 0.5, fontSize: 8},
+					   styles: {overflow: 'linebreak', columnWidth: 'wrap', cellPadding: 0.5, fontSize: 6, margin: 0},
         				   columnStyles: {0: {columnWidth: 50}}
   				});
 

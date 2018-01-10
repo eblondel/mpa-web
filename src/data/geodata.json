@@ -1,9 +1,5 @@
 [
 {
-	"id": "reefs",
-	"title": "Reefs",
-	"visible": false
-},{
 	"id": "seamounts",
 	"title": "Seamounts",
 	"visible": false

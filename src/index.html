@@ -26,8 +26,6 @@
 
     <!-- Javascripts deps -->
     <!-- ================ -->
-    <!--Bootstrap-->
-    <script type="application/javascript" src="js/vendor/bootstrap.min.js"></script>
     <!-- JQuery main & plugins -->
     <script type="application/javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script type="application/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -93,8 +91,10 @@
         <!-- map -->
         <div class="page" id="pageMap">
             <div class="content">
-                <div id="map"></div>
+                
+				<div id="map"></div>
                 <div id="layerswitcher"></div>
+				  
             </div>
         </div>
 
@@ -133,9 +133,9 @@
         <p>Welcome to the <b>Protected Area Impact Map Data Explorer</b></p>
         <p>This application allows users to query a rich database to report on the presence of natural features in marine managed areas such as protected areas. Users can also use this virtual research environment to query their own data.</p>
         <p>Use the ‘Query’ button to select an area of interest, features and run an analysis. The output from the analysis will be presented interactively in the ‘Results’ and ‘Report’ pages. A static PDF report and a .csv file of the analysis can also be downloaded from these pages.</p>
-       <!-- <p>For more details about the data or the algorithm used in this application please read this document.</p> -->
-		<p>A detailed introductory guide to the Protected Area Impact Maps VRE is available at this <a href="http://arcg.is/2yBE3wU" target="_blank" style="color:#0000FF">link.</a></p>
-        <p><em>This work has received funding from the European Union's Horizon 2020 research and innovation programme under the BlueBRIDGE project (Grant agreement No 675680).</em></p>
+		<p>A detailed introductory guide to the Protected Area Impact Maps VRE is available at this <a href="http://arcg.is/2yBE3wU"  style="color:#0000FF" target="_blank">link.</a></p>
+		
+		<p><em>This work has received funding from the European Union's Horizon 2020 research and innovation programme under the BlueBRIDGE project (Grant agreement No 675680).</em></p>
          <hr style="width:100%; color:white;padding:0px 0px 0px 0px;margin-bottom:0px;" />
         <span style="padding:0px 0px 0px 0px;width:100%">
            <!-- <img src="img/bluebridge.png" alt="Bluebridge" class="partner-logo" style="height: auto; width: 30%; float:left;padding:0px 0px 0px 0px;"/> -->
@@ -178,10 +178,23 @@
     <!-- Reporting templates -->
     <!-- Main report (MPA + buttons) -->
     <script id="mpa-report-template1" type="x-tmpl-mustache">
-        <h2 class="mpa-report-title">{{name}} <small class="mpa-report-location">{{type}}{{#isMPA}} - located in {{target.name}}{{/isMPA}}</small></h2>
-        <p><b>Surface:</b> {{surface}} {{surfaceUnit}}</p>
-        
-		
+     <!--<h2 class="mpa-report-title">{{name}} <small class="mpa-report-location">{{type}}{{#isMPA}} - located in {{target.name}}{{/isMPA}}</small></h2>-->
+      
+ 
+
+<h2 class='mpa-report-title'>	 	 
+   {{#isSingleMPA}} <a id='wdpLink' href='https://www.protectedplanet.net/{{extraInfo.wdpa_pid}}' target='_blank'> <nobr> {{name}} </nobr></a> {{/isSingleMPA}}  
+	 
+	 {{#isMpaType}}  {{name}} {{/isMpaType}}
+	 
+	 {{#isAllMPA}}  {{name}} {{/isAllMPA}}
+	  
+	  <small class="mpa-report-location">{{type}}{{#isMPA}} - located in {{target.name}}{{/isMPA}}</small>	
+</h2>
+	 <p><b>Surface:</b> {{surface}} {{surfaceUnit}}</p>        
+
+
+
 	{{#isSingleMPA}}
 		<div style="display:block;overflow:auto;">
 			<p><b>MPA Characteristics:</b></p>
@@ -203,8 +216,8 @@
             <p><b>Sources:</b></p>
             <ul class="sources">
                 {{#isMPA}}<li>Marine Protected Areas: IUCN and UNEP-WCMC (2017), The World Database on Protected Areas (WDPA) [On-line], [January 2017], Cambridge, UK: UNEP-WCMC. Available <a href="http://www.protectedplanet.net/" target="_blank">here</a>. Post-processed by Lucy Bastin and Andrea Mandrici, Joint Research Centre of the European Commission - methodology available <a href="https://dopa.wikispaces.com/WDPA+protected+Area+boundaries" target="_blank">here</a>.</li>{{/isMPA}}
-                {{#isEEZ}}<li>Exclusive Economic Zones: Flanders Marine Institute (2016). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 9. Available online <a href="http://www.marineregions.org/" target="_blank">here</a>.</li>{{/isEEZ}}
-		{{#isECOREGION}}<li>Marine Ecoregions: CITATION TO ADD</li>{{/isECOREGION}}
+                {{#isEEZType}}<li>Exclusive Economic Zones: Flanders Marine Institute (2016). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 9. Available online <a href="http://www.marineregions.org/" target="_blank">here</a>.</li>{{/isEEZType}}
+		{{#isEcoType}}<li>Marine Ecoregions: Spalding MD, Fox HE, Allen GR, Davidson N, Ferdaña ZA, Finlayson M, Halpern BS, Jorge MA, Lombana A, Lourie SA, Martin KD, McManus E, Molnar J, Recchia CA, Robertson J (2007). Marine Ecoregions of the World: a bioregionalization of coast and shelf areas</li>{{/isEcoType}}
             </ul>
 	</div>	
 	
@@ -254,7 +267,7 @@
            
          </li>{{/features}}</ul>{{/features.length}}
     </script>
-        
+        <div id="ver"><button id="testButton" class="btn btn-primary" style="position:fixed;bottom:55px;left:0px;transform:rotate(45deg); width:200px;margin-left:-45px;margin-bottom:-20px;border:2px solid white;outline:solid #337AB71px;">Version 1.0 (Beta)</button>
     </div>
     
     <!-- deactivate footer 
