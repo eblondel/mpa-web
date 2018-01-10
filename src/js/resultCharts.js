@@ -10,7 +10,7 @@ myApp.initResultsChart = function() {
     var statData = JSON.parse(JSON.stringify(this_.processData));
 	
     var format = $('input[name=formatSwitcher]:checked').val();
-    if(typeof format == 'undefined') format = "surface"; //for init results chart just after the MPA analysis
+    if(typeof format == 'undefined') format = "percentage"; //for init results chart just after the MPA analysis
     if (format == "percentage") {
 
 	var roundFactor = Math.pow(10,this.constants.SURFACE_ROUND_DECIMALS);	
