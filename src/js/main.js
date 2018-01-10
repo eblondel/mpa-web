@@ -19,24 +19,24 @@ var myApp = myApp || {};
 			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
 			OVERLAY_GROUP_NAMES: [{name: "Geomorphic Features"},{name: "Marine Protected Areas"},{name: "Base overlays"}],
-            		MAP_ZOOM: 3,
+            MAP_ZOOM: 3,
 			MAP_PROJECTION: 'EPSG:4326',
-            		OGC_WMS_NS: "W_mpa",
-            		OGC_WMS_SUFFIX: "geo_fea_",
+            OGC_WMS_NS: "W_mpa",
+            OGC_WMS_SUFFIX: "geo_fea_",
 			OGC_WMS_BASEURL: "https://paim.d4science.org/geoserver/wms",
 			OGC_WFS_BASEURL: "https://paim.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			//OGC_WFS_BBOX: [-180, -90, 180, 90],
-           		//OGC_WPS_BASEURL: "https://dataminer-cloud1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
-            		OGC_WPS_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
-					OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V3",
+           	//OGC_WPS_BASEURL: "https://dataminer-cloud1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+            OGC_WPS_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+			OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V4",
 			OGC_WPS_OUTPUTDATA_HTTPS: true,
-            		OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
+            OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
 			D4S_HOMELIBRARY_BASEURL: "https://workspace-repository.d4science.org/home-library-webapp/rest",
 			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
-            		DEBUG_REPORTING: false
+            DEBUG_REPORTING: false
 		}
 		
 		//Utils
