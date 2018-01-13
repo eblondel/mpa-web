@@ -18,7 +18,7 @@ var myApp = myApp || {};
 		myApp.constants = {
 			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
-			OVERLAY_GROUP_NAMES: [{name: "Geomorphic Features"},{name: "Marine Protected Areas"},{name: "Base overlays"}],
+			OVERLAY_GROUP_NAMES: [{name: "External layers"},{name: "Geomorphic Features"},{name: "Marine Protected Areas"},{name: "Base overlays"}],
             MAP_ZOOM: 3,
 			MAP_PROJECTION: 'EPSG:4326',
             OGC_WMS_NS: "W_mpa",
@@ -669,19 +669,23 @@ var myApp = myApp || {};
 
             
 			//overlay groups
-			var geomorphicLayers = new ol.layer.Group({
+			var otherLayers = new ol.layer.Group({
 				'title': this.constants.OVERLAY_GROUP_NAMES[0].name,
 				layers: [ ],
 			});
-			var mpaOverlays = new ol.layer.Group({
+			var geomorphicLayers = new ol.layer.Group({
 				'title': this.constants.OVERLAY_GROUP_NAMES[1].name,
 				layers: [ ],
 			});
-			var baseOverlays = new ol.layer.Group({
+			var mpaOverlays = new ol.layer.Group({
 				'title': this.constants.OVERLAY_GROUP_NAMES[2].name,
 				layers: [ ],
 			});
-			var overlays = [geomorphicLayers, mpaOverlays, baseOverlays];
+			var baseOverlays = new ol.layer.Group({
+				'title': this.constants.OVERLAY_GROUP_NAMES[3].name,
+				layers: [ ],
+			});
+			var overlays = [otherLayers, geomorphicLayers, mpaOverlays, baseOverlays];
 		
 			var defaultMapExtent = ((this.constants.OGC_WFS_BBOX)? this.constants.OGC_WFS_BBOX : [-180, -90, 180, 90]);
 			var defaultMapZoom = ((this.constants.OGC_WFS_BBOX)? 5 : this.constants.MAP_ZOOM);
@@ -747,12 +751,17 @@ var myApp = myApp || {};
 		myApp.setLegendGraphic = function(lyr) {
 			
 			var source = lyr.getSource();
-			if( !(source instanceof ol.source.TileWMS) ) return false;
-			
+			if( !(source instanceof ol.source.TileWMS) & !(source instanceof ol.source.ImageWMS) ) return false;
+			var url = null;
+			if(source instanceof ol.source.TileWMS) url = source.getUrls()[0];
+			if(source instanceof ol.source.ImageWMS){
+				console.log(url);
+				url = source.getUrl();
+			}
 			var params = source.getParams();
 
 			var request = '';
-			request += source.getUrls()[0] + '?';
+			request += url + '?';
 			request += 'VERSION=1.0.0';
 			request += '&REQUEST=GetLegendGraphic';
 			request += '&LAYER=' + params.LAYERS;
@@ -771,16 +780,21 @@ var myApp = myApp || {};
 		 * @param main (true/false)
 		 * @param mainOverlayGroup
 		 * @param id
-        	 * @param title
-        	 * @param layer
-       		 * @param cql_filter
+         * @param title
+         * @param layer
+		 * @param tiled
+		 * @param visible
+       	 * @param cql_filter
+		 * @param alternateUrl
+		 * @param alternateServerType
 		 */
-		myApp.addLayer = function(main, mainOverlayGroup, id, title, layer, cql_filter){
-			var layer = new ol.layer.Tile({
-				id : id,
-				title : title,
-				source : new ol.source.TileWMS({
-					url : this.constants.OGC_WMS_BASEURL,
+		myApp.addLayer = function(main, mainOverlayGroup, id, title, layer, tiled, visible, cql_filter, alternateUrl, alternateServerType){
+			var source = null;
+			var olLayerClass = null
+			if(tiled){
+				olLayerClass = ol.layer.Tile;
+				source = new ol.source.TileWMS({
+					url : (alternateUrl? alternateUrl : this.constants.OGC_WMS_BASEURL),
 					params : {
 							'LAYERS' : layer,
 							'VERSION': '1.1.1',
@@ -790,27 +804,41 @@ var myApp = myApp || {};
                             'CQL_FILTER': cql_filter
 					},
 					wrapX: true,
-					serverType : 'geoserver',
+					serverType : (alternateServerType? alternateServerType : 'geoserver'),
 					crossOrigin: 'anonymous'
-				}),
+				});
+			}else{
+				olLayerClass = ol.layer.Image;
+				source = new ol.source.ImageWMS({
+					url: (alternateUrl? alternateUrl : this.constants.OGC_WMS_BASEURL),
+					params: {'LAYERS': layer},
+					ratio: 1,
+					serverType: (alternateServerType? alternateServerType : 'geoserver')
+				});
+			}
+			
+			var layer = new olLayerClass({
+				id : id,
+				title : title,
+				source : source,
 				opacity : 0.8,
-				visible : true
+				visible : visible
 			});
 			this.setLegendGraphic(layer);
             layer.id = id;
 			layer.showLegendGraphic = true;
             
 			
-            		if(main){
+            if(main){
 				if(mainOverlayGroup > this.overlays.length-1){
 					alert("Overlay group with index " + mainOverlayGroup + " doesn't exist");
 				}
 				layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[mainOverlayGroup];
-               		 	this.overlays[mainOverlayGroup].getLayers().push(layer);
-            		}else{
+				this.overlays[mainOverlayGroup].getLayers().push(layer);
+            }else{
 				layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[0];
-               			this.featureMap.getLayers().push(layer);
-            		}
+               	this.featureMap.getLayers().push(layer);
+            }
 		}
         
 		/**
@@ -843,7 +871,7 @@ var myApp = myApp || {};
 			layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[0];
             
             if(main){
-                this.overlays[0].getLayers().push(layer);
+                this.overlays[1].getLayers().push(layer);
             }else{
                 this.featureMap.getLayers().push(layer);
             }
@@ -1182,19 +1210,21 @@ var myApp = myApp || {};
 			$('#mpaTabs').tabs( "option", "active", 0 ); //go to table
 		
 			$("#mpaResultsWrapper").show();
-            $("#mpaResultsCharts").show();
+			$("#mpaResultsCharts").show();
 			$("#mpaResultsWrapper").empty();
-            $("#mpaResultsCharts").empty();
+			$("#mpaResultsCharts").empty();
 			$("#mpaResultsLoader").show();
 					
 			//building WPS GET request
 			var wpsRequest = this.constants.OGC_WPS_BASEURL;
 			wpsRequest += "&Identifier="+this.constants.OGC_WPS_IDENTIFIER,
 			wpsRequest += "&gcube-token="+this.securityToken;
-			//wpsRequest += "&DataInputs=areaType="+areaType+";areaId="+areaId;
-            var selectedFeatures = this.getSelectedFeatures();
-            var selected_data_feature = (selectedFeatures.length == 0)? "NA" : encodeURIComponent(selectedFeatures.join(','));
-			wpsRequest += "&DataInputs=MPA_Shapefile_Url=https%3A%2F%2Fabsences.zip;Marine_Boundary="+areaType+";Region_Id="+areaId+";Selected_Data_Feature="+selected_data_feature;
+			var selectedFeatures = this.getSelectedFeatures();
+			var selected_data_feature = (selectedFeatures.length == 0)? "NA" : encodeURIComponent(selectedFeatures.join(','));
+			wpsRequest += "&DataInputs=Report_Format=json;MPA_Shapefile_Url=https%3A%2F%2Fabsences.zip;";
+			
+			var commonQueryParams = "Marine_Boundary="+areaType+";Region_Id="+areaId+";Selected_Data_Feature="+selected_data_feature;
+			wpsRequest += commonQueryParams;
             
 			this_.storeWPSOutputMetadata(areaType, areaId, this_.sourceFeatures.getFeatureById(areaId).getGeometry().getExtent(), t1, undefined);
 			
@@ -1216,7 +1246,8 @@ var myApp = myApp || {};
 					//process output data
                     			//Recent DataMiner nows handle logs as 1st Result, result is stored as 2d Result (!)
 					var dataUrl = $($(xml).find('d4science\\:Data, Data')[1]).text();
-					this_.getWPSOutputData(dataUrl);	
+					this_.getWPSOutputData(dataUrl);
+					
 				},
 				error : function (xhr, ajaxOptions, thrownError){
 					console.log("Error while executing WPS request");
@@ -1585,8 +1616,8 @@ var myApp = myApp || {};
            		var mapId = trgGtype.id + "-map";
             		this.featureMap = this.initMap(mapId, false, this.report.bbox);
             		this.addGeomorphicFeatureLayer(trgGtype, false);
-	    		this.addLayer(false, 0, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
-            		this.addLayer(false, 0, this.report.id, "MPA", this.report.featureType, this.report.filter);
+	    		this.addLayer(false, 0, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, true, true, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
+            		this.addLayer(false, 0, this.report.id, "MPA", this.report.featureType, true, true, this.report.filter);
         	}
 
 		/**
@@ -1742,13 +1773,12 @@ var myApp = myApp || {};
          * myApp.configureViewer()
          */
         myApp.configureViewer = function(){
-                var this_ = this;
-                this_.map = this_.initMap('map', true, false);
+            var this_ = this;
+			this_.map = this_.initMap('map', true, false);
 
                 //add MPA layer
-            var mpaLayerId = "W_mpa:geo_fea_mpa";
-            this_.addLayer(true, 1, "allmpas", "Marine Protected Areas", mpaLayerId);
-
+            this_.addLayer(true, 2, "allmpas", "Marine Protected Areas", "W_mpa:geo_fea_mpa", true, true);
+			this_.addLayer(true, 0, "ospar_polygons", "OSPAR Habitats", "geonode:OSPARhabPolygons", false, true, null, "https://odims.ospar.org/geoserver/wms");
         
                 //default selector
                 this_.configureMapSelector("EEZ");
