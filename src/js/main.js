@@ -34,6 +34,7 @@ var myApp = myApp || {};
             OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
 			D4S_HOMELIBRARY_BASEURL: "https://workspace-repository.d4science.org/home-library-webapp/rest",
+			USER_WORKSPACE_FOLDER: "PAIM-reports",
 			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
             DEBUG_REPORTING: false
@@ -229,18 +230,231 @@ var myApp = myApp || {};
 		 */
 		myApp.fetchUserProfile = function(){
 			var this_ = this;
-            		var request =  this.constants.D4S_SOCIALNETWORKING_BASEURL + "/people/profile?gcube-token=" + this.securityToken;
-            		console.log("Fetching user profile");
-            		$.ajax({ 
+            var request =  this.constants.D4S_SOCIALNETWORKING_BASEURL + "/people/profile?gcube-token=" + this.securityToken;
+			console.log("Fetching user profile");
+            $.ajax({ 
 				url: request,
-                		contentType: 'application/json',
-    				type: 'GET',
-    				success: function (response) {
-        				this_.userProfile = response.result;  
-  				}     
-	                });
-        	}
+                contentType: 'application/json',
+    			type: 'GET',
+    			success: function (response) {
+        			this_.userProfile = response.result;
+					this_.userWorkspace = "/Home/" + this_.userProfile.username  + "/Workspace";
+				}     
+			});
+        }
 
+		/**
+		 * myApp.createWorkspaceFolder
+		 * Creates a folder in the i-marine user workspace, if not yet created
+		 * @param parentPath parent folder path
+		 * @param folderName workspace folder name
+		 * @param folderDescription workspace folder description
+		 * @param uploadStateMsg
+		 * @return a Jquery promise with the folder path
+		 */
+		myApp.createWorkspaceFolder = function(parentPath, folderName, folderDescription, uploadStateMsg){
+			var msg = "";
+			var this_ = this;
+			var deferredFolder = $.Deferred();
+			var folderPath = parentPath + "/" + folderName;
+			$.ajax({ 
+				type: 'GET',
+				url: this.constants.D4S_HOMELIBRARY_BASEURL + "/List?absPath=" + folderPath + "&gcube-token=" + this_.securityToken,
+				success: function(listResponse){
+				
+					//check if exist
+					var folderExists = listResponse.indexOf("ItemNotFoundException") == -1;
+					if(!folderExists){
+						//create folder
+						msg = "Creating workspace folder '" + folderPath + "'...";
+						if(uploadStateMsg) $("#upload-state").text(msg);
+						console.log(msg);
+					
+						var createFolderRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/CreateFolder?";
+						createFolderRequest += "name=" + folderName;
+						createFolderRequest += "&description=" + folderDescription;
+						createFolderRequest += "&parentPath=" + parentPath;
+						createFolderRequest += "&gcube-token=" + this_.securityToken;
+						$.ajax({ 
+							type: 'GET',
+							url: createFolderRequest,
+							success: function(data){
+								msg = "Successful workspace '" + folderName + "' folder creation!";
+								if(uploadStateMsg) $("#upload-state").text(msg);
+								console.log(msg);
+								deferredFolder.resolve(folderPath);
+							}
+						});
+					}else{
+						console.log("Workspace folder '"+ folderPath + "' already exists");
+						deferredFolder.resolve(folderPath);	
+					}
+				}
+			});
+			return deferredFolder.promise();
+		}
+
+		/**
+		 * myApp.createPAIMParentFolder
+		 * Creates a parent folder in the i-marine user workspace, if not yet created
+		 * The folder will be used for storing analysis and reports.
+		 * @param uploadStateMsg
+		 * @return a Jquery promise
+		 */
+		myApp.createPAIMParentFolder = function(uploadStateMsg){		
+			var folderDescription = "This folder contains the PAIM analysis outputs exported from the PAIM Data Explorer";
+			return this.createWorkspaceFolder(this.userWorkspace, this.constants.USER_WORKSPACE_FOLDER, folderDescription, uploadStateMsg);
+		}
+
+		/**
+		 * myApp.createPAIMProcessFolder
+		 * Creates a process folder in the i-marine user PAIM parent folder, if not yet created
+		 * The folder will be used for storing an analysis and its reports.
+		 * @param uploadStateMsg
+		 * @return a Jquery promise
+		 */
+		myApp.createPAIMProcessFolder = function(uploadStateMsg){		
+			var parentPath = this.userWorkspace + "/" + this.constants.USER_WORKSPACE_FOLDER;
+			var processFolderName =  this.processMetadata.areaType + "-" + this.processMetadata.areaId + "-" + this.processMetadata.dateTime;
+			return this.createWorkspaceFolder(parentPath, processFolderName, "", uploadStateMsg);
+		}
+
+		/**
+		 * myApp.createPAIMTemporaryFolder
+		 * Creates a temporary folder in the i-marine user PAIM parent folder, if not yet created
+		 * The folder will be used for storing eventual user zipped shapefiles for custom analyses
+		 * @param uploadStateMsg
+		 * @return a Jquery promise
+		 */
+		myApp.createPAIMTemporaryFolder = function(uploadStateMsg){		
+			var parentPath = this.userWorkspace + "/" + this.constants.USER_WORKSPACE_FOLDER;
+			var folderName =  "temp";
+			return this.createWorkspaceFolder(parentPath, folderName, "", uploadStateMsg);
+		}
+
+		/**
+		 * myApp.uploadFile
+		 * Uploads a file to workspace
+		 * @param parentPath parent folder path
+		 * @param fileName workspace file name
+		 * @param contentHandler the data to upload, or an handler function to trigger only if file doesn't exist
+		 * @param contentType
+		 * @param uploadStateMsg
+		 * @return a Jquery promise with the public link
+		 */
+		myApp.uploadFile = function(parentPath, fileName, contentHandler, contentType, uploadStateMsg){
+			var this_ = this;
+			var deferredUpload = $.Deferred();
+
+			var publicLinkRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/GetPublicLink?";
+			publicLinkRequest += "absPath=" + parentPath + "/"+ fileName;
+			publicLinkRequest += "&shortUrl=true&gcube-token=" + this_.securityToken;
+			
+			$.ajax({
+			  type: 'GET',
+			  url: publicLinkRequest,
+			  success: function(fileLink){
+				var fileExists = fileLink.indexOf("ItemNotFoundException") == -1;
+				if(!fileExists){
+					msg = "Uploading data file '"+fileName+"' ['"+contentType+"']..."
+					if(uploadStateMsg) $("#upload-state").text(msg);
+					console.log(msg);
+
+					var uploadRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/Upload?";
+					uploadRequest += "name=" + fileName;
+					uploadRequest += "&description=" + fileName;
+					uploadRequest += "&parentPath=" + parentPath;
+					uploadRequest += "&gcube-token=" + this_.securityToken;
+					
+					//trigger content handler in case content is a function
+					if(typeof contentHandler == "function"){
+						contentHandler = contentHandler()
+					}
+					console.log(contentHandler);
+					$.ajax({
+						type: 'POST',
+						url: uploadRequest,
+						contentType: contentType,
+						dataType: 'text',
+						data: contentHandler,
+						processData: false,
+						success: function(data){
+							msg = "Successful data file upload: '"+fileName+"' ['"+contentType+"']"
+							if(uploadStateMsg) $("#upload-state").text(msg);
+							console.log(msg);
+
+							$.ajax({
+								type: 'GET',
+								url: publicLinkRequest,
+								success: function(fileLink){
+									if(uploadStateMsg) $("#upload-state").text("");
+									var xml = $.parseXML(fileLink);
+									var link = xml.getElementsByTagName("string")[0].childNodes[0].data;
+									deferredUpload.resolve({
+										path: parentPath,
+										name: fileName.split(".")[0],
+										filename: fileName,
+										mimetype: contentType,
+										url: link
+									});
+								}
+							});	
+						},
+						error: function(error){
+							console.log("Error during file upload");
+							deferredUpload.reject(error);
+						}
+					});
+				}else{
+					if(uploadStateMsg) $("#upload-state").text("");
+					var xml = $.parseXML(fileLink);
+					var link = xml.getElementsByTagName("string")[0].childNodes[0].data;
+					deferredUpload.resolve({
+						path: parentPath,
+						name: fileName.split(".")[0],
+						filename: fileName,
+						mimetype: contentType,
+						url: link
+					});
+				}
+			  }
+			});
+			
+			return deferredUpload.promise();	
+								
+		}
+
+		/**
+		 * myApp.downloadFile
+		 * @param entity as returned by myApp.uploadFile
+		 */
+		myApp.downloadFile = function(entity){
+			window.open(entity.url, "_self");
+		}
+			
+		/**
+		 * Saves custom zipped shapefile to temporary workspace
+		 * @param filepath
+		 */
+		myApp.saveTemporaryInputFile = function(filepath){
+			var this_ = this;
+			var deferred = $.Deferred();
+
+			//we create a PAIM parent folder if it doesn't exist
+			this_.createPAIMParentFolder(false).then(function(parentFolderPath){
+				
+				//We create a PAIM temporary folder if it doesn't exist
+				this_.createPAIMTemporaryFolder(false).then(function(tempFolderPath){
+					//TODO temporary upload, and defer public link
+				});						
+
+			});
+
+			return deferred.promise();	
+
+		}	
+		
+			
 		/**
 		 * Saves output data as CSV
 		 * This method perform several operations, including:
@@ -253,252 +467,81 @@ var myApp = myApp || {};
 		 */
 		myApp.saveData = function(download){
 			$("#upload-loader").show();
-
+			var msg = "";
 			var this_ = this;
-			var msg;
 			var deferred = $.Deferred();
+			
+			//we create a PAIM parent folder if it doesn't exist
+			this_.createPAIMParentFolder(true).then(function(parentFolderPath){
 
-			var userWorkspace = "/Home/" + this.userProfile.username  + "/Workspace";
-
-			//we create a folder if it doesn't exist
-			var folderName = "PAIM-reports";
-			var folderDescription = "This folder contains the PAIM analysis outputs exported from the PAIM Data Explorer";
-			var folderPath = userWorkspace + "/" + folderName;
-			var processFolder =  this_.processMetadata.areaType + "-" + this_.processMetadata.areaId + "-" + this.processMetadata.dateTime;
-			var processFolderPath = folderPath + "/" + processFolder;
-			$.ajax({ 
-                    type: 'GET',
-             		url: this.constants.D4S_HOMELIBRARY_BASEURL + "/List?absPath=" + folderPath + "&gcube-token=" + this_.securityToken,
-                	success: function(listResponse){
+				//We create a PAIM temporary folder if it doesn't exist
+				this_.createPAIMProcessFolder(true).then(function(processFolderPath){
 					
-					//check if exist
-					var deferredFolder = $.Deferred();
-					var folderExists = listResponse.indexOf("ItemNotFoundException") == -1;
-					if(!folderExists){
-						//create folder
-						msg = "First use! Creating workspace folder '" + folderPath + "'...";
-						$("#upload-state").text(msg);
-						console.log(msg);
-						
-						var createFolderRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/CreateFolder?";
-						createFolderRequest += "name=" + folderName;
-						createFolderRequest += "&description=" + folderDescription;
-						createFolderRequest += "&parentPath=" + userWorkspace;
-						createFolderRequest += "&gcube-token=" + this_.securityToken;
-						$.ajax({ 
-            		    				type: 'GET',
-             		   				url: createFolderRequest,
-                					success: function(data){
-								msg = "Succesful workspace 'PAIM-reports' folder creation!";
-								$("#upload-state").text(msg);
-								console.log(msg);
-								deferredFolder.resolve(data);
-							}
-						})
-					}else{
-						console.log("Workspace folder '"+ folderPath + "' already exists");
-						deferredFolder.resolve()	
-					}
-					var promiseFolder = deferredFolder.promise();
+					//here we can produce the CSV output (method is not consuming like PDF)
+					var csv = this_.json2csv(this_.processData);
 					
-					//next, work on subfolder for process and upload data
-					promiseFolder.then(function(){
-
-						//check if process folder exists, if not we create it
-						$.ajax({
-							type: 'GET',
-							url: this_.constants.D4S_HOMELIBRARY_BASEURL + "/List?absPath=" + processFolderPath + "&gcube-token=" + this_.securityToken,
-							success: function(listResp){
-								//check if exist
-								var deferredProcessFolder = $.Deferred();
-								var processFolderExists = listResp.indexOf("ItemNotFoundException") == -1;
-								if(!processFolderExists){
-									//create process folder
-									msg = "Creating workspace process folder '" + processFolder + "'...";
-									$("#upload-state").text(msg);
-									console.log(msg);
-
-									var createProcessFolderRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/CreateFolder?";
-									createProcessFolderRequest += "name=" + processFolder;
-									createProcessFolderRequest += "&description=" + processFolder;
-									createProcessFolderRequest += "&parentPath=" + folderPath;
-									createProcessFolderRequest += "&gcube-token=" + this_.securityToken;
-									$.ajax({ 
-            		    							type: 'GET',
-             		   							url: createProcessFolderRequest,
-                								success: function(data){
-											msg = "Succesful workspace folder creation!";
-											$("#upload-state").text(msg);
-											console.log(msg);
-											deferredProcessFolder.resolve(data);
-										}
-									})
-
-								}else{
-									console.log("Workspace folder '"+ processFolderPath + "' already exists");
-									deferredProcessFolder.resolve();
-								}
-								var promiseProcessFolder = deferredProcessFolder.promise();
-									
-								//next upload data
-								var entity = "PAIM-report_" + this_.processData.filter(function(row){if(row.type != "MPA") return row})[0].name;
-								var filename = entity + ".csv";
-								promiseProcessFolder.then(function(){
-									var csv = this_.json2csv(this_.processData);
-									var deferredUpload = $.Deferred();
-
-									var publicLinkRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/GetPublicLink?";
-									publicLinkRequest += "absPath=" + processFolderPath + "/"+ filename;
-									publicLinkRequest += "&shortUrl=true&gcube-token=" + this_.securityToken;
-									$.ajax({
-									  type: 'GET',
-									  url: publicLinkRequest,
-									  success: function(fileLink){
-										var fileExists = fileLink.indexOf("ItemNotFoundException") == -1;
-										if(!fileExists){
-										    msg = "Uploading CSV data file..."
-										    $("#upload-state").text(msg);
-										    console.log(msg);
-
-										    var uploadRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/Upload?";
-										    uploadRequest += "name=" + filename;
-										    uploadRequest += "&description=" + filename;
-										    uploadRequest += "&parentPath=" + processFolderPath;
-										    uploadRequest += "&gcube-token=" + this_.securityToken; 
-										    $.ajax({
-											type: 'POST',
-											url: uploadRequest,
-											contentType: 'text/csv',
-   											data: csv,
-											success: function(data){
-												msg = "Succesful CSV data file upload!"
-										    		$("#upload-state").text(msg);
-										    		console.log(msg);
-
-												$.ajax({
-									  			    type: 'GET',
-									 			    url: publicLinkRequest,
-									  			    success: function(fileLink){
-													 $("#upload-state").text("");
-													 var xml = $.parseXML(fileLink);
-										    			 var link = xml.getElementsByTagName("string")[0].childNodes[0].data;
-													 deferredUpload.resolve({
-														path: processFolderPath,
-														name: entity,
-														url: link
-													 });
-												    }
-												});	
-											},
-											error: function(error){
-												console.log("Error during file upload");
-												deferredUpload.reject(error);
-											}
-										    })
-										}else{
-										    $("#upload-state").text("");
-										    var xml = $.parseXML(fileLink);
-										    var link = xml.getElementsByTagName("string")[0].childNodes[0].data;
-										    deferredUpload.resolve({
-											path: processFolderPath,
-											name: entity,
-											url: link
-										    });
-										}
-									  }
-									});
-									var promiseUpload = deferredUpload.promise();
-									promiseUpload.then(function(data){
-										console.log(data);
-										if(download){
-											msg = "Downloading CSV data file..."
-										    	$("#upload-state").text(msg);
-										    	console.log(msg);
-											this_.downloadCSV(csv, filename, 'text/csv;encoding:utf-8');
-											$("#upload-state").text("");
-											$("#upload-loader").hide();
-										}
-										deferred.resolve(data);
-										
-									});									
-								});
-							}
-						});						
-
+					//upload CSV data
+					var fileName = "PAIM-report_" + this_.processData.filter(function(row){if(row.type != "MPA") return row})[0].name + ".csv";
+					this_.uploadFile(processFolderPath, fileName, csv, 'text/csv;encoding:utf-8', true).then(function(uploadedEntity){
+						if(download){
+							msg = "Downloading CSV file..."
+							$("#upload-state").text(msg);
+							console.log(msg);
+							this_.downloadFile(uploadedEntity);
+							$("#upload-state").text("");
+							$("#upload-loader").hide();
+						}
+						deferred.resolve(uploadedEntity);	
 					});
-
-				}
+				});						
 			});
-
+			
 			return deferred.promise();	
-
 		}
 
 
 		/**
 		 * Save & download results as PDF. The function will first save data before generating the PDF.
 		 * In this way PDF report will include a link to data in CSV format.
-		 *
+		 * @param download true/false
 		 */ 
-		myApp.saveResults = function(){
-
+		myApp.saveResults = function(download){
+			$("#upload-loader").show();
 			var msg = "";
 			var this_ = this;
+			var deferred = $.Deferred();
 			this_.saveData(false).then(function(data){
-
-				
+	
 				msg = "Generating PDF results report...";
 				$("#upload-state").text(msg);
 				console.log(msg);
 
-				var filename = data.name + ".pdf";
-				var publicLinkRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/GetPublicLink?";
-				publicLinkRequest += "absPath=" + data.path + "/"+ filename;
-				publicLinkRequest += "&shortUrl=true&gcube-token=" + this_.securityToken;
-				$.ajax({
-					type: 'GET',
-					url: publicLinkRequest,
-					success: function(fileLink){
-						var fileExists = fileLink.indexOf("ItemNotFoundException") == -1;
-					
-						var pdf = this_.produceResultsPDF(data);
-						if(!fileExists){
-							var outpdf = pdf.output('blob');
-							msg = "Saving PDF results report...";
-							$("#upload-state").text(msg);
-							console.log(msg);
-
-							var uploadRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/Upload?";
-							uploadRequest += "name=" + filename;
-							uploadRequest += "&description=" + filename;
-							uploadRequest += "&parentPath=" + data.path;
-							uploadRequest += "&gcube-token=" + this_.securityToken; 
-							$.ajax({
-								type: 'POST',
-								url: uploadRequest,
-								contentType: 'application/pdf',
-								dataType: 'text',
-   								data: outpdf,
-								processData: false,
-								success: function(data){
-									msg = "Downloading PDF results report..."
-									$("#upload-state").text(msg);
-									console.log(msg);
-									pdf.save(filename);
-									$("#upload-state").text(msg);
-									$("#upload-loader").hide();
-								}
-							});
-						 }else{
-							msg = "Downloading PDF results report..."
-							$("#upload-state").text(msg);
-							console.log(msg);
-							pdf.save(filename);
-							$("#upload-loader").hide();
-						 }					
+				var fileName = data.name + ".pdf";
+				
+				//here we don't produce the PDF output but delegate to an handler
+				//that will produce the PDF only if it is to generate (first time)
+				var pdfHandler = function(){
+					var pdf = this_.produceResultsPDF(data);
+					var outpdf = pdf.output('blob');
+					return outpdf;
+				}
+				
+				//upload PDF
+				this_.uploadFile(data.path, fileName, pdfHandler, 'application/pdf', true).then(function(uploadedEntity){
+					if(download){
+						msg = "Downloading PDF file..."
+						$("#upload-state").text(msg);
+						console.log(msg);
+						this_.downloadFile(uploadedEntity);
+						$("#upload-state").text("");
+						$("#upload-loader").hide();
 					}
-				})
+					deferred.resolve(uploadedEntity);	
+				});
+				
 			});
+			
+			return deferred.promise();	
 		}  
 	
 		//Geomorphic Features
@@ -1344,7 +1387,7 @@ var myApp = myApp || {};
 
 				var csvUploadButton = '<button type="button" class="mpaResultsTable-csv-upload" title="Save & Download Results data (CSV)" onclick="myApp.saveData(true)"></button>';
 				$("#mpaResultsWrapper").append(csvUploadButton);
-				var pdfExportButton = '<button type="button" class="mpaResultsTable-pdf-export" title="Save & Download Results report (PDF)" onclick="myApp.saveResults()"></button>';
+				var pdfExportButton = '<button type="button" class="mpaResultsTable-pdf-export" title="Save & Download Results report (PDF)" onclick="myApp.saveResults(true)"></button>';
 				$("#mpaResultsWrapper").append(pdfExportButton);
 				var loader = '<div id="upload-loader" style="display:none;"><span class="mpaResultsTable-upload-loader"></span><span id="upload-state" class="mpaResultsTable-upload-state"></span></div>';
 				$("#mpaResultsWrapper").append(loader);
