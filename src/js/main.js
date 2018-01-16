@@ -2,6 +2,8 @@
  * MPA Analysis web-application by UN FAO & UNEP GRID-ARENDAL
  * Application development powered by FAO FIGIS team, and funded by BlueBridge EC project
  *
+ * Last change: 2018-01-16T17:01:16.610Z
+ *
  * @author Emmanuel Blondel GIS Expert, Marine web-information systems Developer, UN-FAO <emmanuel.blondel@fao.org> (alternate email <emmanuel.blondel1@gmail.com>)
  * @author Levi Westerveld Project Assistant, GRID-ARENDAL <levi.westerveld@grida.no>
  * @author Debhasish Bhakta Project Assistant, GRID-ARENDAL <debhasish.bhakta@grida.no>
@@ -21,6 +23,8 @@ var myApp = myApp || {};
 			OVERLAY_GROUP_NAMES: [{name: "External layers"},{name: "Geomorphic Features"},{name: "Marine Protected Areas"},{name: "Base overlays"}],
             MAP_ZOOM: 3,
 			MAP_PROJECTION: 'EPSG:4326',
+			MAP_SELECTOR_DEFAULT: 'geoselector-default',
+			MAP_SELECTOR_CUSTOM: 'geoselector-custom',
             OGC_WMS_NS: "W_mpa",
             OGC_WMS_SUFFIX: "geo_fea_",
 			OGC_WMS_BASEURL: "https://paim.d4science.org/geoserver/wms",
@@ -445,15 +449,21 @@ var myApp = myApp || {};
 		 * Handler function to trigger on user area file change
 		 */
 		myApp.onUserAreaFileSelection = function(files){
-			console.log(files);
+			var this_ = this;
 			if(files.length>0){
-				this.userAreaFile = files[0];
-				this.$areaSelector.val('');
-				this.$areaSelector.trigger('change');
-				this.$areaSelector.trigger("select2:unselect");	
+				this_.userAreaFile = files[0];
+				if(this_.$areaSelector){
+					this_.$areaSelector.val('');
+					this_.$areaSelector.trigger('change');
+					this_.$areaSelector.trigger("select2:unselect");
+				}
 				$("#analyzer").show();
+				
+				//temporary shapefile handling with OL3
+				this_.configureCustomMapSelector();
+				
 			}else{
-				this.userAreaFile = undefined;
+				this_.userAreaFile = undefined;
 			}
 		}		
 			
@@ -676,7 +686,7 @@ var myApp = myApp || {};
 			this.$areaTypeSelector.trigger('change');
 			$("#areaTypeSelector").on("select2:select", function (e) {
 				var areaType = $("#areaTypeSelector").select2("val");
-				this_.configureMapSelector(areaType);
+				this_.configureDefaultMapSelector(areaType);
 			});
 		}
 		
@@ -801,24 +811,24 @@ var myApp = myApp || {};
 				zoom	: defaultMapZoom
 			} ));
             
-            		if(main){
-                		map.addControl( new ol.control.LayerSwitcher({
-                    			target: "layerswitcher",
-                    			displayLegend: true,
-                    			collapsableGroups : true,
-                    			overlayGroups : this.constants.OVERLAY_GROUP_NAMES
-                		}));
-            		}       
-                        
-            		if(extent){
-             		   map.getView().fit(extent, map.getSize());
-            		}
-            
-            		if(main && this.constants.MAP_ZOOM){
-            		    map.getView().setZoom(this.constants.MAP_ZOOM);
-            		}
-            
-            		return map;
+			if(main){
+				map.addControl( new ol.control.LayerSwitcher({
+					target: "layerswitcher",
+					displayLegend: true,
+					collapsableGroups : true,
+					overlayGroups : this.constants.OVERLAY_GROUP_NAMES
+				}));
+			}       
+				
+			if(extent){
+			   map.getView().fit(extent, map.getSize());
+			}
+	
+			if(main && this.constants.MAP_ZOOM){
+				map.getView().setZoom(this.constants.MAP_ZOOM);
+			}
+	
+			return map;
 		}
 
 		/**
@@ -917,6 +927,32 @@ var myApp = myApp || {};
                	this.featureMap.getLayers().push(layer);
             }
 		}
+		
+        /**
+		 * Util method to remove a layer by property
+		 * @param layerProperty the property value
+		 * @param by the property 
+		 */
+		myApp.removeLayerByProperty = function(layerProperty, by){
+            var removed = false;
+			if(!by) byTitle = false;
+			var target = undefined;
+            var layerGroups = this.map.getLayers().getArray();
+			for(var i=0;i<layerGroups.length;i++){
+				var layerGroup = layerGroups[i];
+                var layers = layerGroup.getLayers().getArray();
+                for(var j=0;j<layers.length;j++){
+                    var layer = layers[j];
+                    var condition  = by? (layer.get(by) === layerProperty) : (layer.getSource().getParams()["LAYERS"] === layerProperty);
+                    if(condition){
+                        this.overlays[i-1].getLayers().remove(layer);
+                        removed = true;
+                        break;
+                    }
+                }
+			}
+			return removed;
+        }
         
 		/**
 		 * Adds Geomorphic Feature layer
@@ -1030,238 +1066,325 @@ var myApp = myApp || {};
 		/**
 		 * Configures the map layer dynamic selector based on WFS
 		 * @param areaType the area type 'EEZ' or 'ECOREGION'
+		 * @param map_selector_id
+		 * @param enableSelectInteraction
+		 * @param enableHoverInteraction
+		 * @param enableTooltip
 		 */
-		myApp.configureMapSelector = function(areaType){
+		myApp._configureMapSelector = function(areaType, map_selector_id, enableSelectInteraction, enableHoverInteraction, enableTooltip){
 			
 			var this_ = this;
-			
-			this_.$areaTypeSelector.val(areaType);
-			this_.$areaTypeSelector.trigger('change');
-			
-			$("#areaSelector").empty();
-           		// $("#areaSelector").select2('data', null);
-			
-			$("#areaSelectorWrapper").hide();
-			$("#areaSelectorLoader").show();
-			
-			$("#areaTypeSelector").prop("disabled", true);
+			var wfsRequest = "";
+			if(areaType){
 
-			//prepare the WFS request
-			this_.areaFeatureType = null;
-			this_.intersectFeatureType = null;
-			this_.areaIdProperty = null;
-			this_.areaLabelProperty = null;
-			switch(areaType){
-			case "EEZ":
-				this_.areaFeatureType = "W_mpa:eez";
-				this_.intersectFeatureType = "W_mpa:intersect_mpa_eez_v1";
-				this_.areaIdProperty = "mrgid";
-				this_.areaLabelProperty = "geoname";
-				break;
-			case "ECOREGION":
-				this_.areaFeatureType = "W_mpa:marine_ecoregions";
-				this_.intersectFeatureType = "W_mpa:intersect_mpa_marine_ecoregions_v1",
-				this_.areaIdProperty = "ecoid";
-				this_.areaLabelProperty = "ecoregion";
-				break;
+				this_.$areaTypeSelector.val(areaType);
+				this_.$areaTypeSelector.trigger('change');
+				
+				$("#areaSelector").empty();
+				// $("#areaSelector").select2('data', null);
+				
+				$("#areaSelectorWrapper").hide();
+				$("#areaSelectorLoader").show();
+				
+				$("#areaTypeSelector").prop("disabled", true);
+
+				//prepare the WFS request
+				this_.areaFeatureType = null;
+				this_.intersectFeatureType = null;
+				this_.areaIdProperty = null;
+				this_.areaLabelProperty = null;
+				switch(areaType){
+				case "EEZ":
+					this_.areaFeatureType = "W_mpa:eez";
+					this_.intersectFeatureType = "W_mpa:intersect_mpa_eez_v1";
+					this_.areaIdProperty = "mrgid";
+					this_.areaLabelProperty = "geoname";
+					break;
+				case "ECOREGION":
+					this_.areaFeatureType = "W_mpa:marine_ecoregions";
+					this_.intersectFeatureType = "W_mpa:intersect_mpa_marine_ecoregions_v1",
+					this_.areaIdProperty = "ecoid";
+					this_.areaLabelProperty = "ecoregion";
+					break;
+				}
+				wfsRequest = this_.constants.OGC_WFS_BASEURL + "?version=1.0.0&request=GetFeature&typeName=" + this_.areaFeatureType;
+				if(this_.constants.OGC_WFS_BBOX) {
+					wfsRequest += "&bbox="+ this_.constants.OGC_WFS_BBOX.join(',');
+				}
+				wfsRequest += "&srsName=" + this_.constants.MAP_PROJECTION;
+				wfsRequest += "&outputFormat=json";
 			}
-			var wfsRequest = this.constants.OGC_WFS_BASEURL + "?version=1.0.0&request=GetFeature&typeName=" + this_.areaFeatureType;
-			if(this.constants.OGC_WFS_BBOX) {
-				wfsRequest += "&bbox="+ this.constants.OGC_WFS_BBOX.join(',');
-			}
-			wfsRequest += "&srsName=" + this.constants.MAP_PROJECTION;
-			wfsRequest += "&outputFormat=json";
 			
-			console.log("Performing WFS request on selected area type");
-			console.log(wfsRequest);
-			this.sourceFeatures = new ol.source.Vector({
+			console.log("Configuring map selector...");
+			this[map_selector_id] = new ol.source.Vector({
 				format: this_.constants.OGC_WFS_FORMAT,
 				loader: function(extent, resolution, projection) {
-				
-					$.ajax({
-						url: wfsRequest,
-						success: function(response) {
-							//add source feature layer
-							var features = this_.constants.OGC_WFS_FORMAT.readFeatures(response);
-							
-							//fill drop-down list
-							$("#areaSelectorWrapper").show();
-							this_.$areaSelector = $("#areaSelector").select2({
-								placeholder: "Select an area",
-								allowClear: true,
-								sorter: function(data) {
-									data.sort(function(a,b){
-										 a = a.text.toLowerCase();
-										 b = b.text.toLowerCase();
-										 if(a > b) {
-											 return 1;
-										 } else if (a < b) {
-											 return -1;
-										 }
-										 return 0;
-									 });
-									return data;
-								}
-							});
-							var modifiedFeatures = [];
-							for (var i = 0; i < features.length; i++) {
-								var feature = features[i];
-								var props = feature.getProperties();
-								feature.setId(props[this_.areaIdProperty]);
-								modifiedFeatures.push(feature);
-								var option = new Option(props[this_.areaLabelProperty], props[this_.areaIdProperty]);
-								this_.$areaSelector.append(option);
-							}
-							this_.sourceFeatures.addFeatures(modifiedFeatures);
-							this_.$areaSelector.val('');
-							this_.$areaSelector.trigger("change");
-							
-							//select events
-							this_.$areaSelector.on("select2:select", function (e) {
-								var targetFeature = this_.sourceFeatures.getFeatureById(e.params.data.id);
-								document.getElementById("userArea").value = "";
-								this_.userAreaFile = undefined;
-								this_.userAreaFileName = undefined;
-								this_.selectInteraction.getFeatures().clear();
-								this_.selectInteraction.getFeatures().push(targetFeature);
-								this_.areaExtent = targetFeature.getGeometry().getExtent();
-								this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
-								$("#analyzer").show();
-							});
-							this_.$areaSelector.on("select2:unselect", function (e) {
-								this_.selectInteraction.getFeatures().clear();
-								this_.areaExtent = null;
-								this_.map.getView().fit(this_.map.getView().getProjection().getExtent(), this_.map.getSize());
-								this_.map.getView().setZoom(this_.constants.MAP_ZOOM);
-								if(this_.userAreaFile) $("#analyzer").hide();
+	
+					if(areaType){
+						//DEFAULT VECTOR LAYER (EEZ or ECOREGION)
+						console.log("Default '"+areaType+"' map selector");
+						console.log(wfsRequest);
+						$.ajax({
+							url: wfsRequest,
+							success: function(response) {
+								//add source feature layer
+								var features = this_.constants.OGC_WFS_FORMAT.readFeatures(response);
 								
-								$($("li[data-where='#pageResults']")[0]).hide();
-								$($("li[data-where='#pageReports']")[0]).hide();
+								//fill drop-down list
+								$("#areaSelectorWrapper").show();
+								this_.$areaSelector = $("#areaSelector").select2({
+									placeholder: "Select an area",
+									allowClear: true,
+									sorter: function(data) {
+										data.sort(function(a,b){
+											 a = a.text.toLowerCase();
+											 b = b.text.toLowerCase();
+											 if(a > b) {
+												 return 1;
+											 } else if (a < b) {
+												 return -1;
+											 }
+											 return 0;
+										 });
+										return data;
+									}
+								});
+								var modifiedFeatures = [];
+								for (var i = 0; i < features.length; i++) {
+									var feature = features[i];
+									var props = feature.getProperties();
+									feature.setId(props[this_.areaIdProperty]);
+									modifiedFeatures.push(feature);
+									var option = new Option(props[this_.areaLabelProperty], props[this_.areaIdProperty]);
+									this_.$areaSelector.append(option);
+								}
+								this_[map_selector_id].addFeatures(modifiedFeatures);
+								this_.$areaSelector.val('');
+								this_.$areaSelector.trigger("change");
+								
+								//select events
+								this_.$areaSelector.on("select2:select", function (e) {
+									var targetFeature = this_[map_selector_id].getFeatureById(e.params.data.id);
+									this_.getLayerByProperty("geoselector-default", "id").setVisible(true);
+									
+									//clear custom input in case
+									var customSelector = this_.getLayerByProperty("geoselector-custom", "id");
+									if(customSelector){
+										document.getElementById("userArea").value = "";
+										this_.userAreaFile = undefined;
+										this_.userAreaFileName = undefined;
+										this_.removeLayerByProperty("geoselector-custom", "id");
+										this_.map.changed();
+									}
+									
+									this_.selectInteraction.getFeatures().clear();
+									this_.selectInteraction.getFeatures().push(targetFeature);
+									this_.areaExtent = targetFeature.getGeometry().getExtent();
+									this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
+									$("#analyzer").show();
+								});
+								this_.$areaSelector.on("select2:unselect", function (e) {
+									this_.selectInteraction.getFeatures().clear();
+									this_.areaExtent = null;
+									this_.map.getView().fit(this_.map.getView().getProjection().getExtent(), this_.map.getSize());
+									this_.map.getView().setZoom(this_.constants.MAP_ZOOM);
+									if(this_.userAreaFile) $("#analyzer").hide();
+									
+									$($("li[data-where='#pageResults']")[0]).hide();
+									$($("li[data-where='#pageReports']")[0]).hide();
 
-							});
-							
-							//hide loader
-							$("#areaSelectorLoader").hide();
+								});
+								
+								//hide loader
+								$("#areaSelectorLoader").hide();
 
-							$("#areaTypeSelector").prop("disabled", false);
+								$("#areaTypeSelector").prop("disabled", false);
 
 
-						},
-						error: function(){
-							console.log("failed to query WFS");
-							this_.map = this_.initMap('map', true, false);
-							this_.addGeomorphicFeatureLayers();
-							this_.$areaTypeSelector.val('');
-							this_.$areaTypeSelector.trigger('change');
-							$("#areaSelectorLoader").hide();
+							},
+							error: function(){
+								console.log("failed to query WFS");
+								this_.map = this_.initMap('map', true, false);
+								this_.addGeomorphicFeatureLayers();
+								this_.$areaTypeSelector.val('');
+								this_.$areaTypeSelector.trigger('change');
+								$("#areaSelectorLoader").hide();
 
-							$("#areaTypeSelector").prop("disabled", false);
+								$("#areaTypeSelector").prop("disabled", false);
 
-						}
-					});
+							}
+						});
+					}else{
+						//CUSTOM VECTOR LAYER (ZIPPED SHAPEFILE - USER INPUT)
+						this_[map_selector_id].clear();
+						loadshp({
+							url: this_.userAreaFile,
+							encoding: 'utf-8'
+						}, function(data) {
+							var features = this_.constants.OGC_WFS_FORMAT.readFeatures(data);
+							this_[map_selector_id].addFeatures(features);
+							this_.areaExtent = this_[map_selector_id].getExtent();
+							this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
+						});
+					}
+					
 				}
 				
 			});
 			
 			//try to search for existing vector source
-			var vectorLayer = myApp.getLayerByProperty("geoselector", "id");
-			var title = "Geo selector ("+areaType+")";
+			var vectorLayer = myApp.getLayerByProperty(map_selector_id, "id");
+			var title = areaType? ("Geo selector ("+areaType+")") : "My shapefile";
 			if(typeof vectorLayer == "undefined"){
 				//if no layer we create it
+				
+				//default style
+				var vectorStyle = new ol.style.Style({
+					fill: new ol.style.Fill({
+						color: "rgba(255,255,255,0.4)" 
+					}),
+					stroke: new ol.style.Stroke({
+						color: '#3399CC',
+						width: 1.25
+					})
+				});
+				if(!areaType){
+					vectorStyle = new ol.style.Style({
+					fill: new ol.style.Fill({
+						color: "rgba(255,0,0,0.4)" 
+					}),
+					stroke: new ol.style.Stroke({
+						color: '#FF0000',
+						width: 1.25
+					})
+				});	
+				}
+				
 				var vectorLayer = new ol.layer.Vector({
-					id: "geoselector",
+					id: map_selector_id,
 					title : title,
-					source : this_.sourceFeatures
+					source : this_[map_selector_id],
+					style: vectorStyle
 				});
 				this_.overlays[3].getLayers().push(vectorLayer);
 				
 				//select interactions
 				//-------------------
-				this_.selectInteraction = new ol.interaction.Select({
-					condition: ol.events.condition.click,
-					layers: [vectorLayer],
-					style: new ol.style.Style({
-						fill: new ol.style.Fill({
-								color: "rgba(238,153,0,0.4)" 
-							}),
-						stroke: new ol.style.Stroke({
-							color: '#ee9900',
-							width: 1
+				if(enableSelectInteraction){
+					this_.selectInteraction = new ol.interaction.Select({
+						condition: ol.events.condition.click,
+						layers: [vectorLayer],
+						style: new ol.style.Style({
+							fill: new ol.style.Fill({
+									color: "rgba(238,153,0,0.4)" 
+								}),
+							stroke: new ol.style.Stroke({
+								color: '#ee9900',
+								width: 1
+							})
 						})
-					})
-				});
-				this_.hoverInteraction = new ol.interaction.Select({
-					condition: ol.events.condition.pointerMove,
-					layers: [vectorLayer],
-					style: new ol.style.Style({
-						fill: new ol.style.Fill({
-								color: "rgba(255,255,255,0.3)" 
-							}),
-						stroke: new ol.style.Stroke({
-							color: '#0099ff',
-							width: 2
-						})
-					})
-				});
-				this_.map.addInteraction(this_.selectInteraction);
-				this_.map.addInteraction(this_.hoverInteraction);
-				
-				//selection handling
-				this_.selectInteraction.on('select', function(e) {
-					if(e.selected.length > 0){
-						this_.$areaSelector.val(e.selected[0].getId());
-						var targetFeature = this_.sourceFeatures.getFeatureById(e.selected[0].getId());
-						this_.areaExtent = targetFeature.getGeometry().getExtent();
-						this_.$areaSelector.trigger("change");
-						$("#analyzer").show();
-					}else{
+					});
+					this_.map.addInteraction(this_.selectInteraction);
+					
+					//selection handling
+					this_.selectInteraction.on('select', function(e) {
+						if(e.selected.length > 0){
+							this_.$areaSelector.val(e.selected[0].getId());
+							var targetFeature = this_[map_selector_id].getFeatureById(e.selected[0].getId());
+							this_.areaExtent = targetFeature.getGeometry().getExtent();
+							this_.$areaSelector.trigger("change");
+							$("#analyzer").show();
+						}else{
+							this_.$areaSelector.val('');
+							this_.areaExtent = null;
+							this_.$areaSelector.trigger("change");
+							$("#analyzer").hide();
+						}
+					});
+					this_.selectInteraction.on('unselect', function(e) {
 						this_.$areaSelector.val('');
-						this_.areaExtent = null;
 						this_.$areaSelector.trigger("change");
 						$("#analyzer").hide();
-					}
-				});
-				this_.selectInteraction.on('unselect', function(e) {
-					this_.$areaSelector.val('');
-					this_.$areaSelector.trigger("change");
-					$("#analyzer").hide();
-				});
+					});
+				}
+				
+				if(enableHoverInteraction){
+					this_.hoverInteraction = new ol.interaction.Select({
+						condition: ol.events.condition.pointerMove,
+						layers: [vectorLayer],
+						style: new ol.style.Style({
+							fill: new ol.style.Fill({
+									color: "rgba(255,255,255,0.3)" 
+								}),
+							stroke: new ol.style.Stroke({
+								color: '#0099ff',
+								width: 2
+							})
+						})
+					});
+					
+					this_.map.addInteraction(this_.hoverInteraction);
+				}
 				
 				//tooltip
 				//-------
-				var areaTooltip = new ol.Overlay.Popup({id: "geoselector-tooltip", isTooltip: true});
-				this_.map.addOverlay(areaTooltip);
-				var areaTooltipHandler = function(feature){
-					return feature.getProperties()[this_.areaLabelProperty];
-				}
-				this_.map.on('pointermove', function(evt) {
-				  var feature = this_.map.forEachFeatureAtPixel(evt.pixel,
-					function(feature, layer) {
-						var features = feature.get('features');
-						if( !!features ) {
-							var size = features.length;
-							if( size > 1 ) {
-								return;
-							} else {
-								feature = features[0];
-							}
-						}
-						return feature;
+				if(enableTooltip){
+					var areaTooltip = new ol.Overlay.Popup({id: (map_selector_id+"-tooltip"), isTooltip: true});
+					this_.map.addOverlay(areaTooltip);
+					
+					var areaTooltipHandler = function(feature){
+						var propertyName = areaType? this_.areaLabelProperty : "name";
+						return feature.getProperties()[propertyName];
 					}
-				  );
-				  if (feature) {
-						areaTooltip.show(evt.coordinate, areaTooltipHandler(feature));
-				  } else {
-						areaTooltip.hide();
-				  }	  
-				});
-			
-				
+					this_.map.on('pointermove', function(evt) {
+					  var feature = this_.map.forEachFeatureAtPixel(evt.pixel,
+						function(feature, layer) {
+							if (layer) if(layer.getProperties().id != map_selector_id) return;
+							var features = feature.get('features');
+							if( !!features) {
+								var size = features.length;
+								if( size > 1 ) {
+									return;
+								} else {
+									feature = features[0];
+								}
+							}
+							return feature;
+						}
+					  );
+					  if (feature) {
+							areaTooltip.show(evt.coordinate, areaTooltipHandler(feature));
+					  } else {
+							areaTooltip.hide();
+					  }	  
+					});
+				}
 			}else{
-				vectorLayer.setSource(this_.sourceFeatures);
+				vectorLayer.setSource(this_[map_selector_id]);
 				vectorLayer.setProperties({title: title});
 			}
-			
+		}
+
+		/**
+		 * Configures a map layer default selector
+		 * @param areaType the area type 'EEZ' or 'ECOREGION'
+		 */
+		myApp.configureDefaultMapSelector = function(areaType){
+			var customSelector = this.getLayerByProperty("geoselector-custom", "id");
+			if(customSelector){
+				this.getLayerByProperty("geoselector-default", "id").setVisible(true);
+				this.removeLayerByProperty("geoselector-custom", "id");
+				this.map.changed();
+			}
+			this._configureMapSelector(areaType, this.constants.MAP_SELECTOR_DEFAULT, true, true, true);
+		}
+		
+		/**
+		 * Configures a map layer custom selector
+		 */
+		myApp.configureCustomMapSelector = function(){
+			this.getLayerByProperty("geoselector-default", "id").setVisible(false);
+			this._configureMapSelector(null, this.constants.MAP_SELECTOR_CUSTOM, false, false, true);
 		}		
 		
 		// WPS analysis methods
@@ -1307,15 +1430,8 @@ var myApp = myApp || {};
 			wpsRequest += ";Region_Id=" + (areaId? areaId : "NA");
 			wpsRequest += ";Selected_Data_Feature=" + selected_data_feature;
             
-			//extent
-			var areaExtent = [-180,-90,180,90];
-			if(areaId){
-				areaExtent = this_.sourceFeatures.getFeatureById(areaId).getGeometry().getExtent();
-			}else{
-				//TODO?
-			}
-			
-			this_.storeWPSOutputMetadata(areaType, areaId, areaExtent, t1, undefined);
+			//output metadata
+			this_.storeWPSOutputMetadata(areaType, areaId, this_.areaExtent, t1, undefined);
 			
 			//execute WPS Get request
 			$.ajax({
@@ -1870,7 +1986,7 @@ var myApp = myApp || {};
 			//this_.addLayer(true, 0, "ospar_polygons", "OSPAR Habitats", "geonode:OSPARhabPolygons", false, true, null, "https://odims.ospar.org/geoserver/wms");
         
 			//default selector
-			this_.configureMapSelector("EEZ");
+			this_.configureDefaultMapSelector("EEZ");
 	
 			//do business once geomorphic feature data is loaded
 			this_.fetchGeomorphicFeatures()
