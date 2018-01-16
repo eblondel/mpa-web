@@ -34,7 +34,8 @@ var myApp = myApp || {};
             OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
 			D4S_HOMELIBRARY_BASEURL: "https://workspace-repository.d4science.org/home-library-webapp/rest",
-			USER_WORKSPACE_FOLDER: "PAIM-reports",
+			WORKSPACE_USER_FOLDER: "PAIM-reports",
+			WORKSPACE_TEMP_FOLDER: "temp",
 			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
             DEBUG_REPORTING: false
@@ -89,30 +90,30 @@ var myApp = myApp || {};
 		 * @returns a string representive the CSV
 		 */
 		myApp.json2csv = function(objArray) {
-    			var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-    			var str = '';
-    			var line = '';
+			var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+			var str = '';
+			var line = '';
 
-    			//add colnames
-        		var head = array[0];
-            		for (var index in array[0]) {
-            			line += index + ',';
-            		}
-        		line = line.slice(0, -1);
-        		str += line + '\r\n';
-    			
-                //add data
-    			for (var i = 0; i < array.length; i++) {
-        			var line = '';
-            			for (var index in array[i]) {
-					val = array[i][index];
-					if(typeof val == 'string') val = '"' + val + '"';
-                			line += val + ',';
-            			}
-        			line = line.slice(0, -1);
-        			str += line + '\r\n';
-    			}
-    			return str;
+			//add colnames
+			var head = array[0];
+				for (var index in array[0]) {
+					line += index + ',';
+				}
+			line = line.slice(0, -1);
+			str += line + '\r\n';
+			
+			//add data
+			for (var i = 0; i < array.length; i++) {
+				var line = '';
+					for (var index in array[i]) {
+				val = array[i][index];
+				if(typeof val == 'string') val = '"' + val + '"';
+						line += val + ',';
+					}
+				line = line.slice(0, -1);
+				str += line + '\r\n';
+			}
+			return str;
 		}
 
 		/**
@@ -160,46 +161,54 @@ var myApp = myApp || {};
 		/**
 		 * Utility to render a statistical value after conversion and rounding
 		 * @param value to render
-         	 * @param format value "surface" or "percentage". The percentage corresponds to the % of geomorphic feature
-         	 *             (only in the given EEZ) covered by the MPA (or all MPAs)
-         	 * @param meta an metadata object as defined in DataTable API (see https://datatables.net/reference/option/columns.render)
-         	 *             used to inherit column information (required to apply percentage format)
+		 * @param format value "surface" or "percentage". The percentage corresponds to the % of geomorphic feature
+		 *             (only in the given EEZ) covered by the MPA (or all MPAs)
+		 * @param meta an metadata object as defined in DataTable API (see https://datatables.net/reference/option/columns.render)
+		 *             used to inherit column information (required to apply percentage format)
 		 * @returns the rendered value
 		 */
 		myApp.renderStatValue = function(value, format, meta){
         
-            		var roundFactor = Math.pow(10,this.constants.SURFACE_ROUND_DECIMALS);
-        
-            		if(format == "percentage"){
-                		refRow = this.processData[0]
-                		refValue = refRow[Object.keys(refRow)[meta.col]]
-                		outValue = value / refValue * 100;
-                		outValue = Math.round(outValue * roundFactor) / roundFactor;
-                		if(refValue == 0 || outValue == 0) outValue = "–";
-            		}else if(format == "surface"){
-                		var factor = 1;
-                		switch(this.constants.SURFACE_UNIT.id){
-                    			case "sqkm": factor = 1e-6;break;
-                    			case "ha": factor = 1e-4;break;
-                    			default: factor = 1; break;
-                		}
-                		outValue = Math.round(value * factor * roundFactor) / roundFactor;
-                		if(outValue == 0) outValue = "–";
-            		}
+			var roundFactor = Math.pow(10,this.constants.SURFACE_ROUND_DECIMALS);
+			if(format == "percentage"){
+				refRow = this.processData[0]
+				refValue = refRow[Object.keys(refRow)[meta.col]]
+				outValue = value / refValue * 100;
+				outValue = Math.round(outValue * roundFactor) / roundFactor;
+				if(refValue == 0 || outValue == 0) outValue = "–";
+			}else if(format == "surface"){
+				var factor = 1;
+				switch(this.constants.SURFACE_UNIT.id){
+					case "sqkm": factor = 1e-6;break;
+					case "ha": factor = 1e-4;break;
+					default: factor = 1; break;
+				}
+				outValue = Math.round(value * factor * roundFactor) / roundFactor;
+				if(outValue == 0) outValue = "–";
+			}
 			return outValue;
             
 		},
         
-        	/**
-         	 * Utility to reload the stats (table & graph). Called on switching the format (% or surface) with the formatSwitcher
-        	 */
-        	myApp.renderStatistics = function(){
+		/**
+		 * Utility to reload the stats (table & graph). Called on switching the format (% or surface) with the formatSwitcher
+		 */
+		myApp.renderStatistics = function(){
 			//render stat table
 		   	this.table.rows().invalidate('data').draw(false);
 
 			//render barchart
 			this.initResultsChart();
-        	}
+        }
+		
+		/**
+		 * myApp.getFolderDateTimeString
+		 * @param date
+		 */
+		myApp.getFolderDateTimeString = function(date){
+			var str = date.toISOString();
+			return (str.split("T")[0] + "" + str.split("T")[1].split(".")[0]).replace(/-/g,"").replace(/:/g,"");
+		}
 	
 		// gCubeSecurity Token 
 		//===========================================================================================
@@ -303,7 +312,7 @@ var myApp = myApp || {};
 		 */
 		myApp.createPAIMParentFolder = function(uploadStateMsg){		
 			var folderDescription = "This folder contains the PAIM analysis outputs exported from the PAIM Data Explorer";
-			return this.createWorkspaceFolder(this.userWorkspace, this.constants.USER_WORKSPACE_FOLDER, folderDescription, uploadStateMsg);
+			return this.createWorkspaceFolder(this.userWorkspace, this.constants.WORKSPACE_USER_FOLDER, folderDescription, uploadStateMsg);
 		}
 
 		/**
@@ -314,8 +323,8 @@ var myApp = myApp || {};
 		 * @return a Jquery promise
 		 */
 		myApp.createPAIMProcessFolder = function(uploadStateMsg){		
-			var parentPath = this.userWorkspace + "/" + this.constants.USER_WORKSPACE_FOLDER;
-			var processFolderName =  this.processMetadata.areaType + "-" + this.processMetadata.areaId + "-" + this.processMetadata.dateTime;
+			var parentPath = this.userWorkspace + "/" + this.constants.WORKSPACE_USER_FOLDER;
+			var processFolderName =  (this.custom? "CUSTOM" : (this.processMetadata.areaType + "-" + this.processMetadata.areaId)) + "-" + this.processMetadata.dateTime;
 			return this.createWorkspaceFolder(parentPath, processFolderName, "", uploadStateMsg);
 		}
 
@@ -327,9 +336,8 @@ var myApp = myApp || {};
 		 * @return a Jquery promise
 		 */
 		myApp.createPAIMTemporaryFolder = function(uploadStateMsg){		
-			var parentPath = this.userWorkspace + "/" + this.constants.USER_WORKSPACE_FOLDER;
-			var folderName =  "temp";
-			return this.createWorkspaceFolder(parentPath, folderName, "", uploadStateMsg);
+			var parentPath = this.userWorkspace + "/" + this.constants.WORKSPACE_USER_FOLDER;
+			return this.createWorkspaceFolder(parentPath, this.constants.WORKSPACE_TEMP_FOLDER, "", uploadStateMsg);
 		}
 
 		/**
@@ -348,7 +356,7 @@ var myApp = myApp || {};
 
 			var publicLinkRequest = this_.constants.D4S_HOMELIBRARY_BASEURL + "/GetPublicLink?";
 			publicLinkRequest += "absPath=" + parentPath + "/"+ fileName;
-			publicLinkRequest += "&shortUrl=true&gcube-token=" + this_.securityToken;
+			publicLinkRequest += "&shortUrl=false&gcube-token=" + this_.securityToken;
 			
 			$.ajax({
 			  type: 'GET',
@@ -433,10 +441,29 @@ var myApp = myApp || {};
 		}
 			
 		/**
-		 * Saves custom zipped shapefile to temporary workspace
-		 * @param filepath
+		 * myApp.onUserAreaFileSelection
+		 * Handler function to trigger on user area file change
 		 */
-		myApp.saveTemporaryInputFile = function(filepath){
+		myApp.onUserAreaFileSelection = function(files){
+			console.log(files);
+			if(files.length>0){
+				this.userAreaFile = files[0];
+				this.$areaSelector.val('');
+				this.$areaSelector.trigger('change');
+				this.$areaSelector.trigger("select2:unselect");	
+				$("#analyzer").show();
+			}else{
+				this.userAreaFile = undefined;
+			}
+		}		
+			
+		/**
+		 * Saves custom zipped shapefile to temporary workspace
+		 */
+		myApp.uploadUserAreaFile = function(){
+			
+			if(!this.userAreaFile) return false;
+			
 			var this_ = this;
 			var deferred = $.Deferred();
 
@@ -445,13 +472,19 @@ var myApp = myApp || {};
 				
 				//We create a PAIM temporary folder if it doesn't exist
 				this_.createPAIMTemporaryFolder(false).then(function(tempFolderPath){
-					//TODO temporary upload, and defer public link
+					
+					//temporary upload, and defer public link
+					var fileName = this_.getFolderDateTimeString(new Date()) + "_" + this_.userAreaFile.name;
+					this_.userAreaFileName = fileName;
+					this_.uploadFile(tempFolderPath, fileName, this_.userAreaFile, 'application/x-zip-compressed', false).then(function(uploadedEntity){
+						console.log(uploadedEntity);
+						deferred.resolve(uploadedEntity);
+					});
 				});						
 
 			});
 
 			return deferred.promise();	
-
 		}	
 		
 			
@@ -481,7 +514,7 @@ var myApp = myApp || {};
 					var csv = this_.json2csv(this_.processData);
 					
 					//upload CSV data
-					var fileName = "PAIM-report_" + this_.processData.filter(function(row){if(row.type != "MPA") return row})[0].name + ".csv";
+					var fileName = "PAIM-report_" + (this_.custom? this_.userAreaFileName.split(".zip")[0] : this_.processData.filter(function(row){if(row.type != "MPA") return row})[0].name) + ".csv";
 					this_.uploadFile(processFolderPath, fileName, csv, 'text/csv;encoding:utf-8', true).then(function(uploadedEntity){
 						if(download){
 							msg = "Downloading CSV file..."
@@ -609,7 +642,8 @@ var myApp = myApp || {};
 				this_.geomorphicFeatures = data;
                 
                 //build query interface
-                var ulHtml = '<ul>';
+				var ulHtml = '<ul><li><input id="all_geomorphicfeatures" type="checkbox" onclick="myApp.toggleGeomorphicFeatureLayers()"><em>All geomorphic features</em></input></li></ul>';
+				ulHtml += '<ul>';
                 for(var i=0;i<data.length;i++){
                     var item = data[i];
                     var liHtml = '<li><input id="'+item.id+'" type="checkbox" onclick="myApp.toggleGeomorphicFeatureLayer(\''+item.id+'\')"/>'+item.title+'</li>';
@@ -743,7 +777,7 @@ var myApp = myApp || {};
             		}     
         
 			//map
-            		var mapId = id? id : 'map';
+            var mapId = id? id : 'map';
 			$("#"+mapId).empty();
 			var map = new ol.Map(
 				{
@@ -974,6 +1008,12 @@ var myApp = myApp || {};
                 layer.setVisible(true);
             }
         }
+		
+		myApp.toggleGeomorphicFeatureLayers = function(){
+			for(var i=0;i<this.geomorphicFeatures.length;i++){
+				$("#"+this.geomorphicFeatures[i].id).trigger('click');
+			}
+		}
         
         /**
          * Get feature selection
@@ -1079,6 +1119,9 @@ var myApp = myApp || {};
 							//select events
 							this_.$areaSelector.on("select2:select", function (e) {
 								var targetFeature = this_.sourceFeatures.getFeatureById(e.params.data.id);
+								document.getElementById("userArea").value = "";
+								this_.userAreaFile = undefined;
+								this_.userAreaFileName = undefined;
 								this_.selectInteraction.getFeatures().clear();
 								this_.selectInteraction.getFeatures().push(targetFeature);
 								this_.areaExtent = targetFeature.getGeometry().getExtent();
@@ -1090,7 +1133,7 @@ var myApp = myApp || {};
 								this_.areaExtent = null;
 								this_.map.getView().fit(this_.map.getView().getProjection().getExtent(), this_.map.getSize());
 								this_.map.getView().setZoom(this_.constants.MAP_ZOOM);
-								$("#analyzer").hide();
+								if(this_.userAreaFile) $("#analyzer").hide();
 								
 								$($("li[data-where='#pageResults']")[0]).hide();
 								$($("li[data-where='#pageReports']")[0]).hide();
@@ -1130,7 +1173,7 @@ var myApp = myApp || {};
 					title : title,
 					source : this_.sourceFeatures
 				});
-				this_.overlays[2].getLayers().push(vectorLayer);
+				this_.overlays[3].getLayers().push(vectorLayer);
 				
 				//select interactions
 				//-------------------
@@ -1229,34 +1272,25 @@ var myApp = myApp || {};
 		 * Execute
 		 * @param areaType the area type 'EEZ' or 'ECOREGION'
 		 * @param areaId the id of the selected area
+		 * @param areaFileEntity an entity returned by myApp.uploadFile (for custom upload)
 		 */		
-		myApp.executeWPSRequest = function(areaType, areaId){
+		myApp.executeWPSRequest = function(areaType, areaId, areaFileEntity){
 			
 			var this_ = this;
+			
+			//is it with custom area input?
+			this_.custom = areaFileEntity? true : false;
 
 			//set feature extent
-			this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
-			
+			if(!areaFileEntity){ //TODO remove!!!!!!!!!!!!!!!!
+				this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
+			}
 			var t1 = new Date();
 			
 			console.log("Executing WPS request with the following params");
 			console.log("Security Token = "+this.securityToken);
-			console.log("Area type = "+areaType);
-			console.log("Area Id = "+areaId);
-			
-			$("#areaTypeSelector").prop("disabled", true);
-			$("#areaSelector").prop("disabled", true);
-			$("#analyzer").attr("disabled",true);
-			
-			$('#mpaTabs').show();
-			$('#mpaTabs').tabs();
-			$('#mpaTabs').tabs( "option", "active", 0 ); //go to table
-		
-			$("#mpaResultsWrapper").show();
-			$("#mpaResultsCharts").show();
-			$("#mpaResultsWrapper").empty();
-			$("#mpaResultsCharts").empty();
-			$("#mpaResultsLoader").show();
+			if(areaType) console.log("Area type = "+areaType);
+			if(areaId) console.log("Area Id = "+areaId);
 					
 			//building WPS GET request
 			var wpsRequest = this.constants.OGC_WPS_BASEURL;
@@ -1264,12 +1298,24 @@ var myApp = myApp || {};
 			wpsRequest += "&gcube-token="+this.securityToken;
 			var selectedFeatures = this.getSelectedFeatures();
 			var selected_data_feature = (selectedFeatures.length == 0)? "NA" : encodeURIComponent(selectedFeatures.join(','));
-			wpsRequest += "&DataInputs=Report_Format=json;MPA_Shapefile_Url=https%3A%2F%2Fabsences.zip;";
 			
-			var commonQueryParams = "Marine_Boundary="+areaType+";Region_Id="+areaId+";Selected_Data_Feature="+selected_data_feature;
-			wpsRequest += commonQueryParams;
+			//data inputs
+			wpsRequest += "&DataInputs=";
+			wpsRequest += "Report_Format=json";
+			wpsRequest += ";MPA_Shapefile_Url=" + (areaFileEntity? encodeURIComponent(areaFileEntity.url) : encodeURIComponent("https://absences.zip"));
+			wpsRequest += ";Marine_Boundary=" + (areaType? areaType : "EEZ");
+			wpsRequest += ";Region_Id=" + (areaId? areaId : "NA");
+			wpsRequest += ";Selected_Data_Feature=" + selected_data_feature;
             
-			this_.storeWPSOutputMetadata(areaType, areaId, this_.sourceFeatures.getFeatureById(areaId).getGeometry().getExtent(), t1, undefined);
+			//extent
+			var areaExtent = [-180,-90,180,90];
+			if(areaId){
+				areaExtent = this_.sourceFeatures.getFeatureById(areaId).getGeometry().getExtent();
+			}else{
+				//TODO?
+			}
+			
+			this_.storeWPSOutputMetadata(areaType, areaId, areaExtent, t1, undefined);
 			
 			//execute WPS Get request
 			$.ajax({
@@ -1280,27 +1326,26 @@ var myApp = myApp || {};
 				success: function(xml) {
 					var t2 = new Date();
 					this_.processMetadata.end = t2;
-					var endStr = t2.toISOString();
-					this_.processMetadata.dateTime = (endStr.split("T")[0] + "" + endStr.split("T")[1].split(".")[0]).replace(/-/g,"").replace(/:/g,"");
+					this_.processMetadata.dateTime = this_.getFolderDateTimeString(t2);
 					
 					$($("li[data-where='#pageResults']")[0]).show();
-					$($("li[data-where='#pageReports']")[0]).show();
+					if(!this_.custom) $($("li[data-where='#pageReports']")[0]).show();
 
 					//process output data
-                    			//Recent DataMiner nows handle logs as 1st Result, result is stored as 2d Result (!)
+                    //Recent DataMiner nows handle logs as 1st Result, result is stored as 2d Result (!)
 					var dataUrl = $($(xml).find('d4science\\:Data, Data')[1]).text();
-					this_.getWPSOutputData(dataUrl);
+					this_.getWPSOutputData(dataUrl, this_.custom);
 					
 				},
 				error : function (xhr, ajaxOptions, thrownError){
 					console.log("Error while executing WPS request");
-					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed…</br></br>Erors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
+					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed…</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
 					$("#mpaResultsWrapper").append("<p style='color:black;'>GET Request '"+wpsRequest+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
-                    			$("#areaTypeSelector").prop("disabled", false);
-                    			$("#areaSelector").prop("disabled", false);
-                    			$("#analyzer").attr("disabled",false);
-                    			$("#mpaResultsLoader").hide();
+                    $("#areaTypeSelector").prop("disabled", false);
+                    $("#areaSelector").prop("disabled", false);
+                    $("#analyzer").attr("disabled",false);
+                    $("#mpaResultsLoader").hide();
 					$($("li[data-where='#pageResults']")[0]).show();
 					$($("li[data-where='#pageReports']")[0]).show();
 				}
@@ -1310,6 +1355,7 @@ var myApp = myApp || {};
 		/**
 		 * Get WPS output JSON data
 		 * @param url
+		 * @param custom
 		 */		
 		myApp.getWPSOutputData = function(url){
 			
@@ -1325,127 +1371,134 @@ var myApp = myApp || {};
 				url: url,
 				success: function(response){
             
-                		//results
-                		//-------
-				var results = JSON.parse(response);
-				this_.processData = new Array();
-                    
-                		//explicit order by non-MPA (EEZ or ECOREGION), then All MPAs, then each MPA
-				this_.processData = this_.processData.concat(results.filter(function(row){if(row.type != "MPA") return row}));
-				this_.processData = this_.processData.concat(results.filter(function(row){if(row.name == "All MPAs") return row}));
-                		var mpas = results.filter(function(row){if(row.type == "MPA" & row.name != "All MPAs") return row});
-                		mpas.sort(function(a,b) {return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);} ); 
-				this_.processData = this_.processData.concat(mpas);		
+					//results
+					//-------
+					var results = JSON.parse(response);
 					
-                		//remove empty columns
-				var keys = Object.keys(this_.processData[0]);
-				for(key in keys){
-					var keyname = keys[key];
-					if(keyname != "id" & this_.processData[0][keyname] == 0){
-						for (var i = 0, len = this_.processData.length; i < len; i++) {
-							delete this_.processData[i][keyname];
-				    	}
-					}
-				}
-                    
-				//prepare dtColumns
-				var columns = Object.keys(this_.processData[0]);
-				this_.columnNames = ["id", "Name", "Type", "Area"];
-				for(var i=0;i<columns.length;i++){
-					var column = columns[i];
-                        		for(var j=0;j<this_.geomorphicFeatures.length;j++){
-                            			var gtype = this_.geomorphicFeatures[j];
-                            			if(gtype.id === column){
-                                			this_.columnNames.push(gtype.title);
-							break;
-						}
-                            		}
-                       		}
-
-
-				//html markup
-                		//-----------
-				var tableHeaders = '';
-				$.each(this_.columnNames, function(i, val){
-					tableHeaders += "<th>" + val + "</th>";
-				});
-                
-                		// Initialize Highcharts
-                		this_.initResultsChart();
-					
-                		//timer
-				var timer = (this_.processMetadata.end - this_.processMetadata.start) / 1000;
-				var timerHtml = '<p class="mpa-timer">MPA analysis performed in '+timer+' seconds!</p>';
-				$("#mpaResultsWrapper").append(timerHtml);
-                    
-			   	//value format (absolute value or %)
-				var formatSwitcherHtml = '<table class="mpa-formatswitcher"><tr>';
-                		formatSwitcherHtml += '<td><input id="surfaceSwitcher" type="radio" name="formatSwitcher" value="surface" onclick="myApp.renderStatistics()">Surface (km²)</td>';
-				formatSwitcherHtml += '<td><input id = "percentSwitcher" type="radio" name="formatSwitcher" value="percentage" checked onclick="myApp.renderStatistics()">% of geomorphic feature</td>';
-				formatSwitcherHtml += '</tr></table>';
-				$("#mpaResultsWrapper").append(formatSwitcherHtml);
-
-				var csvUploadButton = '<button type="button" class="mpaResultsTable-csv-upload" title="Save & Download Results data (CSV)" onclick="myApp.saveData(true)"></button>';
-				$("#mpaResultsWrapper").append(csvUploadButton);
-				var pdfExportButton = '<button type="button" class="mpaResultsTable-pdf-export" title="Save & Download Results report (PDF)" onclick="myApp.saveResults(true)"></button>';
-				$("#mpaResultsWrapper").append(pdfExportButton);
-				var loader = '<div id="upload-loader" style="display:none;"><span class="mpaResultsTable-upload-loader"></span><span id="upload-state" class="mpaResultsTable-upload-state"></span></div>';
-				$("#mpaResultsWrapper").append(loader);
-					
-                		//results table
-				var resultsTable = '<table id="mpaResultsTable" class="stripe row-border order-column" cellspacing="0" style="width:100%;"><thead><tr>' + tableHeaders + '</tr></thead></table>';
-				$("#mpaResultsWrapper").append(resultsTable);
-
-				$("#areaTypeSelector").prop("disabled", false);
-				$("#areaSelector").prop("disabled", false);
-				$("#analyzer").attr("disabled",false);
-				$("#mpaResultsLoader").hide();
-
-				//prepare dtColumns
-				var dtColumns = new Array();
-				for( var i=0;i<columns.length;i++){
-					var dtColumn = {data: columns[i]};
-					dtColumns.push(dtColumn);
-				}
-
-				this_.table = $("#mpaResultsTable").removeAttr('width').DataTable({
-					data: this_.processData,
-					columns: dtColumns,
-					paging: false,
-					scrollCollapse: true,
-					scrollY: 230,
-					scrollX: true, //scroll on the full table (header + body)
-					columnDefs: [
-						{
-							targets: 0,
-							visible: false
-						},
-						{
-							targets: 1,
-							width: 220,
-							render : function ( mData, type,row, meta ) {
-								return '<a href="#" onclick="myApp.accessReports(\''+row.id+'\')" title="Access report" class="mpa-table-name">' + mData+'</a>';                             
-							}
-						},
-						{
-							targets: Array.apply(null, Array(Object.keys(this_.processData[0]).length)).map(function (_, i) {return i;}).slice(3), //all surfacic fields
-							render: function( mData, type, row, meta ){
-								return '<span class="mpa-table-stat">'+this_.renderStatValue(mData, $('input[name=formatSwitcher]:checked').val(), meta)+'</span>';
+					this_.processData = new Array();
+						
+					//explicit order by non-MPA (EEZ or ECOREGION), then All MPAs, then each MPA
+					this_.processData = this_.processData.concat(results.filter(function(row){if(row.type != "MPA") return row}));
+					this_.processData = this_.processData.concat(results.filter(function(row){if(row.name == "All MPAs") return row}));
+					var mpas = results.filter(function(row){if(row.type == "MPA" & row.name != "All MPAs") return row});
+					mpas.sort(function(a,b) {return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);} ); 
+					this_.processData = this_.processData.concat(mpas);		
+						
+					//remove empty columns
+					var keys = Object.keys(this_.processData[0]);
+					for(key in keys){
+						var keyname = keys[key];
+						if(keyname != "id" & this_.processData.filter(function(i){return i[keyname] == 0}).length == this_.processData.length){
+							for (var i = 0, len = this_.processData.length; i < len; i++) {
+								delete this_.processData[i][keyname];
 							}
 						}
-					],
-					order: [], //prevent default sorting and keep order of processed result
-					colReorder: {
-						fixedColumnsLeft: 4
 					}
-				});
-                
-                		$("#mpaResultsTable_info").remove();
+						
+					//prepare dtColumns
+					var columns = Object.keys(this_.processData[0]);
+					this_.columnNames = ["id", "Name", "Type", "Area"];
+					for(var i=0;i<columns.length;i++){
+						var column = columns[i];
+						for(var j=0;j<this_.geomorphicFeatures.length;j++){
+							var gtype = this_.geomorphicFeatures[j];
+							if(gtype.id === column){
+								this_.columnNames.push(gtype.title);
+								break;
+							}
+						}
+					}
+
+					//html markup
+					//-----------
+					var tableHeaders = '';
+					$.each(this_.columnNames, function(i, val){
+						tableHeaders += "<th>" + val + "</th>";
+					});
 					
-				new $.fn.dataTable.FixedColumns( this_.table, {leftColumns: 4} );
-                
-                		//$(".sorting:contains('Name')").trigger("click");
-                		//$(".sorting:contains('Area')").trigger("click");
+					// Initialize Highcharts
+					if(!this_.custom) this_.initResultsChart();
+						
+					//timer
+					var timer = (this_.processMetadata.end - this_.processMetadata.start) / 1000;
+					var timerHtml = '<p class="mpa-timer">MPA analysis performed in '+timer+' seconds!</p>';
+					$("#mpaResultsWrapper").append(timerHtml);
+						
+					//value format (absolute value or %)
+					
+					var formatSwitcherHtml = '<table class="mpa-formatswitcher"><tr>';
+					if(!this_.custom){
+						formatSwitcherHtml += '<td><input id="surfaceSwitcher" type="radio" name="formatSwitcher" value="surface" onclick="myApp.renderStatistics()">Surface (km²)</td>';
+						formatSwitcherHtml += '<td><input id = "percentSwitcher" type="radio" name="formatSwitcher" value="percentage" checked onclick="myApp.renderStatistics()">% of geomorphic feature</td>';
+					}else{
+						formatSwitcherHtml += '<td>Surface (km²)</td>';
+					}
+					formatSwitcherHtml += '</tr></table>';
+					$("#mpaResultsWrapper").append(formatSwitcherHtml);
+
+					var csvUploadButton = '<button type="button" class="mpaResultsTable-csv-upload" title="Save & Download Results data (CSV)" onclick="myApp.saveData(true)"></button>';
+					$("#mpaResultsWrapper").append(csvUploadButton);
+					if(!this_.custom){
+						var pdfExportButton = '<button type="button" class="mpaResultsTable-pdf-export" title="Save & Download Results report (PDF)" onclick="myApp.saveResults(true)"></button>';
+						$("#mpaResultsWrapper").append(pdfExportButton);
+					}
+					var loader = '<div id="upload-loader" style="display:none;"><span class="mpaResultsTable-upload-loader"></span><span id="upload-state" class="mpaResultsTable-upload-state"></span></div>';
+					$("#mpaResultsWrapper").append(loader);
+						
+					//results table
+					var resultsTable = '<table id="mpaResultsTable" class="stripe row-border order-column" cellspacing="0" style="width:100%;"><thead><tr>' + tableHeaders + '</tr></thead></table>';
+					$("#mpaResultsWrapper").append(resultsTable);
+
+					$("#areaTypeSelector").prop("disabled", false);
+					$("#areaSelector").prop("disabled", false);
+					$("#analyzer").attr("disabled",false);
+					$("#mpaResultsLoader").hide();
+
+					//prepare dtColumns
+					var dtColumns = new Array();
+					for( var i=0;i<columns.length;i++){
+						var dtColumn = {data: columns[i]};
+						dtColumns.push(dtColumn);
+					}
+
+					this_.table = $("#mpaResultsTable").removeAttr('width').DataTable({
+						data: this_.processData,
+						columns: dtColumns,
+						paging: false,
+						scrollCollapse: true,
+						scrollY: 230,
+						scrollX: true, //scroll on the full table (header + body)
+						columnDefs: [
+							{
+								targets: 0,
+								visible: false
+							},
+							{
+								targets: 1,
+								width: 220,
+								render : function ( mData, type,row, meta ) {
+									return this_.custom? mData : '<a href="#" onclick="myApp.accessReports(\''+row.id+'\')" title="Access report" class="mpa-table-name">' + mData+'</a>';                             
+								}
+							},
+							{
+								targets: Array.apply(null, Array(Object.keys(this_.processData[0]).length)).map(function (_, i) {return i;}).slice(3), //all surfacic fields
+								render: function( mData, type, row, meta ){
+									return '<span class="mpa-table-stat">'+this_.renderStatValue(mData, (this_.custom? "surface" : $('input[name=formatSwitcher]:checked').val()), meta)+'</span>';
+								}
+							}
+						],
+						order: [], //prevent default sorting and keep order of processed result
+						colReorder: {
+							fixedColumnsLeft: 4
+						}
+					});
+					
+					$("#mpaResultsTable_info").remove();
+						
+					new $.fn.dataTable.FixedColumns( this_.table, {leftColumns: 4} );
+					
+					//$(".sorting:contains('Name')").trigger("click");
+					//$(".sorting:contains('Area')").trigger("click");
                 
 				},
 				error : function (xhr, ajaxOptions, thrownError){
@@ -1453,9 +1506,9 @@ var myApp = myApp || {};
 					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed…</br></br>Erors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
 					$("#mpaResultsWrapper").append("<p style='color:red;'>GET Request '"+url+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
-                    			$("#areaTypeSelector").prop("disabled", false);
-                    			$("#areaSelector").prop("disabled", false);
-                    			$("#analyzer").attr("disabled",false);
+					$("#areaTypeSelector").prop("disabled", false);
+                    $("#areaSelector").prop("disabled", false);
+                    $("#analyzer").attr("disabled",false);
 				}
 			});
 		}
@@ -1518,150 +1571,143 @@ var myApp = myApp || {};
 		 * @param id the id of the area
 		 */
 		myApp.accessReports = function(id){
-            		var this_ = this;
+            var this_ = this;
             
-            		//go to report tab
-            		$("nav li[data-where='#pageReports']").trigger("click");
-            		$("#mpaReportMainWrapper").empty();
-            		$("#mpaReportFeatureWrapper").empty();
-            		$("#mpaReportLoader").show(); //show loader (until WFS request is fetched)
-            
-            		//report object preparation
-            		var data = this.processData.filter(function(row){if(row.id === String(id)) return row})[0];
-            		this.report = {
-                		id : data.id,
-                		name: data.name,
-                		type: data.type,
-                		isMPA: data.type == "MPA",				
-				isSingleMPA: data.name != "All MPAs" && data.type == "MPA",
-				
-				
-				isMpaType: data.type != "MPA",								
+            //go to report tab
+            $("nav li[data-where='#pageReports']").trigger("click");
+            $("#mpaReportMainWrapper").empty();
+            $("#mpaReportFeatureWrapper").empty();
+            $("#mpaReportLoader").show(); //show loader (until WFS request is fetched)
+          
+            //report object preparation
+            var data = this.processData.filter(function(row){if(row.id === String(id)) return row})[0];
+            this.report = {
+                id : data.id,
+                name: data.name,
+                type: data.type,
+                isMPA: data.type == "MPA",				
+				isSingleMPA: data.name != "All MPAs" && data.type == "MPA",								
 				isAllMPA: data.name == "All MPAs",
-				isEEZType: data.type == "EEZ",
-				isEcoType: data.type == "ECOREGION",
-				
-				
 				isEEZ: this.processMetadata.areatype == "EEZ",
 				isECOREGION: this.processMetadata.areatype == "ECOREGION",
-                		surface: this.renderStatValue(data.surface, "surface"),
-                		surfaceUnit: this.constants.SURFACE_UNIT.label,
-                		target: this.processData.filter(function(row){if(row.type == this_.processMetadata.areaType) return row})[0],
-                		features: []
-            		}
-            		for(var i=0;i<this.geomorphicFeatures.length;i++){
-                		var surface = data[this.geomorphicFeatures[i].id];
-                		if(surface > 0){
-                    			var targetSurface = this.report.target[this.geomorphicFeatures[i].id];
-                    			var featureReport = {
-                       		 		metadata: this.geomorphicFeatures[i],
-                        			data: {
-                            				surface: this.renderStatValue(surface, "surface"),
-                            				surfaceUnit: this.constants.SURFACE_UNIT.label,
-                            				indicator1: Math.round(surface / targetSurface * 100 * 100) / 100,
-                            				map: this.getFeatureReportMap(this.report.id, this.geomorphicFeatures[i].layer)
-                        			}
-                    			}
-                    			this.report.features.push(featureReport);
-                		}
-            		}
+                surface: this.renderStatValue(data.surface, "surface"),
+                surfaceUnit: this.constants.SURFACE_UNIT.label,
+                target: this.processData.filter(function(row){if(row.type == this_.processMetadata.areaType) return row})[0],
+                features: []
+            }
+			for(var i=0;i<this.geomorphicFeatures.length;i++){
+				var surface = data[this.geomorphicFeatures[i].id];
+				if(surface > 0){
+						var targetSurface = this.report.target[this.geomorphicFeatures[i].id];
+						var featureReport = {
+							metadata: this.geomorphicFeatures[i],
+							data: {
+									surface: this.renderStatValue(surface, "surface"),
+									surfaceUnit: this.constants.SURFACE_UNIT.label,
+									indicator1: Math.round(surface / targetSurface * 100 * 100) / 100,
+									map: this.getFeatureReportMap(this.report.id, this.geomorphicFeatures[i].layer)
+							}
+						}
+						this.report.features.push(featureReport);
+				}
+			}
             
-            		//query intersect by filter (if any mpa) to get bbox
-            		var targetFilter = this.areaIdProperty + " = '" + this.report.target.id + "'";
-            		if(this.report.type == "MPA" & this.report.name != "All MPAs"){
-                		targetFilter += " AND wdpaid = " + id;
-            		}
-            		var intersectRequest = this.constants.OGC_WFS_BASEURL + "?version=1.0.0&request=GetFeature";
-            		var targetLayer = (this.report.type != "MPA")? this.areaFeatureType : this_.intersectFeatureType;
-            		intersectRequest += "&typeName=" + targetLayer;
-	    		intersectRequest += "&outputFormat=json";
-            		intersectRequest += "&cql_filter=" + targetFilter;
-            		intersectRequest = encodeURI(intersectRequest);
-            
-            		console.log("Performing WFS request to get Report map bbox");
-            		console.log(intersectRequest);
-            		$.ajax({
-                		url: intersectRequest,
-                		success: function(response) {
-                    			//add source feature layer
-                    			var features = this_.constants.OGC_WFS_FORMAT.readFeatures(response);
-                    			var intersectFeatures = new ol.source.Vector();
-                    			intersectFeatures.addFeatures(features);
-                    			this_.report.featureType = targetLayer;
-                    			this_.report.filter = targetFilter;
-                    			this_.report.bbox = intersectFeatures.getExtent();
-		
-		    			//additional fields
-		    			if(this_.report.isMPA){
-						var mpa = intersectFeatures.getFeatures()[0];
-		    				this_.report.extraInfo = {
-			    				wdpa_pid : mpa.get('wdpa_pid'),
-			    				desig : mpa.get('desig'),
-			    				desig_type : mpa.get('desig_type'),
-			    				iucn_cat: mpa.get('iucn_cat'),
-			    				status: mpa.get('status'),
-			    				status_yr: mpa.get('status_yr'),
-			    				gov_type: mpa.get('gov_type'),
-			    				mang_auth: mpa.get('mang_auth')
-		    				}
-		    			}
+			//query intersect by filter (if any mpa) to get bbox
+			var targetFilter = this.areaIdProperty + " = '" + this.report.target.id + "'";
+			if(this.report.type == "MPA" & this.report.name != "All MPAs"){
+				targetFilter += " AND wdpaid = " + id;
+			}
+			var intersectRequest = this.constants.OGC_WFS_BASEURL + "?version=1.0.0&request=GetFeature";
+			var targetLayer = (this.report.type != "MPA")? this.areaFeatureType : this_.intersectFeatureType;
+			intersectRequest += "&typeName=" + targetLayer;
+			intersectRequest += "&outputFormat=json";
+			intersectRequest += "&cql_filter=" + targetFilter;
+			intersectRequest = encodeURI(intersectRequest);
+	
+			console.log("Performing WFS request to get Report map bbox");
+			console.log(intersectRequest);
+			$.ajax({
+				url: intersectRequest,
+				success: function(response) {
+					//add source feature layer
+					var features = this_.constants.OGC_WFS_FORMAT.readFeatures(response);
+					var intersectFeatures = new ol.source.Vector();
+					intersectFeatures.addFeatures(features);
+					this_.report.featureType = targetLayer;
+					this_.report.filter = targetFilter;
+					this_.report.bbox = intersectFeatures.getExtent();
 
-                    			//hide report loader
-                    			$("#mpaReportLoader").hide(); 
-                    
-                    			//build the templates
-                    			this_._template1 = document.getElementById('mpa-report-template1').innerHTML;
-                    			Mustache.parse(this_._template2);
-                    			this_._template2 = document.getElementById('mpa-report-template2').innerHTML;
-                    			Mustache.parse(this_._template2);
-                
-                    			//Render the main template
-                    			var rendered = Mustache.render(this_._template1, this_.report);
-                    			document.getElementById('mpaReportMainWrapper').innerHTML = rendered;
-                    			$('.mpa-report-featurelist').css("height", "90%");
-                    
-                    			//select first feature by default
-                    			var buttonIdFirst = "#"+this_.report.features[0].metadata.id + "-button";
-                    			$(buttonIdFirst).trigger("click");
-                                    
-                		},
-                		error: function(){
-                    			console.log("failed to query WFS");
-                    $("#mpaReportMainWrapper").append("The MPA analysis returned an error...");
+					//additional fields
+					if(this_.report.isMPA){
+						var mpa = intersectFeatures.getFeatures()[0];
+						this_.report.extraInfo = {
+							wdpa_pid : mpa.get('wdpa_pid'),
+							desig : mpa.get('desig'),
+							desig_type : mpa.get('desig_type'),
+							iucn_cat: mpa.get('iucn_cat'),
+							status: mpa.get('status'),
+							status_yr: mpa.get('status_yr'),
+							gov_type: mpa.get('gov_type'),
+							mang_auth: mpa.get('mang_auth')
+						}
+					}
+
+					//hide report loader
+					$("#mpaReportLoader").hide(); 
+		
+					//build the templates
+					this_._template1 = document.getElementById('mpa-report-template1').innerHTML;
+					Mustache.parse(this_._template2);
+					this_._template2 = document.getElementById('mpa-report-template2').innerHTML;
+					Mustache.parse(this_._template2);
+	
+					//Render the main template
+					var rendered = Mustache.render(this_._template1, this_.report);
+					document.getElementById('mpaReportMainWrapper').innerHTML = rendered;
+					$('.mpa-report-featurelist').css("height", "90%");
+		
+					//select first feature by default
+					var buttonIdFirst = "#"+this_.report.features[0].metadata.id + "-button";
+					$(buttonIdFirst).trigger("click");
+							
+				},
+				error: function(){
+					console.log("failed to query WFS");
+					$("#mpaReportMainWrapper").append("The MPA analysis returned an error...");
 					$("#mpaReportMainWrapper").append("<p style='color:red;'>GET Request '"+intersectRequest+"' failed!</p>");
-                    			$("#mpaReportLoader").hide(); 
-                		}
-            		});		
+					$("#mpaReportLoader").hide(); 
+				}
+			});		
 		}
         
         	/**
 		 * Function to access MPA Feature Report 
 		 * @param gtype the geomorphic feature identifier
 		 */
-        	myApp.displayReport = function(gtype){
-            		var features = new Array();
-            		var trgGtype = undefined;
-            		for(var i=0;i<this.report.features.length;i++){
-                		var buttonId = "#"+this.report.features[i].metadata.id + "-button";
-                		if(this.report.features[i].metadata.id == gtype){
-                    			trgGtype = this.report.features[i].metadata;
-                    			features.push(this.report.features[i]);
-                    			$(buttonId).addClass("selected");
-                		}else{
-                    			$(buttonId).removeClass("selected");
-                		}
-            		}	
-            		var featureReport = jQuery.extend({}, this.report)
-            		featureReport.features = features;
-            		var rendered = Mustache.render(this._template2, featureReport);
-            		document.getElementById('mpaReportFeatureWrapper').innerHTML = rendered;
-            
-           		var mapId = trgGtype.id + "-map";
-            		this.featureMap = this.initMap(mapId, false, this.report.bbox);
-            		this.addGeomorphicFeatureLayer(trgGtype, false);
-	    		this.addLayer(false, 0, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, true, true, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
-            		this.addLayer(false, 0, this.report.id, "MPA", this.report.featureType, true, true, this.report.filter);
-        	}
+		myApp.displayReport = function(gtype){
+			var features = new Array();
+			var trgGtype = undefined;
+			for(var i=0;i<this.report.features.length;i++){
+				var buttonId = "#"+this.report.features[i].metadata.id + "-button";
+				if(this.report.features[i].metadata.id == gtype){
+						trgGtype = this.report.features[i].metadata;
+						features.push(this.report.features[i]);
+						$(buttonId).addClass("selected");
+				}else{
+						$(buttonId).removeClass("selected");
+				}
+			}	
+			var featureReport = jQuery.extend({}, this.report)
+			featureReport.features = features;
+			var rendered = Mustache.render(this._template2, featureReport);
+			document.getElementById('mpaReportFeatureWrapper').innerHTML = rendered;
+		
+			var mapId = trgGtype.id + "-map";
+			this.featureMap = this.initMap(mapId, false, this.report.bbox);
+			this.addGeomorphicFeatureLayer(trgGtype, false);
+			this.addLayer(false, 0, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, true, true, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
+			this.addLayer(false, 0, this.report.id, "MPA", this.report.featureType, true, true, this.report.filter);
+		}
 
 		/**
 		 * Map event handler
@@ -1796,7 +1842,7 @@ var myApp = myApp || {};
 				var imageGraph = $("#mpaResultsCharts").highcharts().createCanvas();
 				var marginX = 10;
 				var marginY = 20;
-        			pdf.addImage(imageGraph, 'PNG', marginX, marginY, maxX - 2*marginX, maxX / 2);	
+        		pdf.addImage(imageGraph, 'PNG', marginX, marginY, maxX - 2*marginX, maxX / 2);	
 			}
 
 			//handle sub-report 1 (surfaces)
@@ -1819,56 +1865,67 @@ var myApp = myApp || {};
             var this_ = this;
 			this_.map = this_.initMap('map', true, false);
 
-                //add MPA layer
+			//add MPA layer
             this_.addLayer(true, 2, "allmpas", "Marine Protected Areas", "W_mpa:geo_fea_mpa", true, true);
-		//this_.addLayer(true, 0, "ospar_polygons", "OSPAR Habitats", "geonode:OSPARhabPolygons", false, true, null, "https://odims.ospar.org/geoserver/wms");
+			//this_.addLayer(true, 0, "ospar_polygons", "OSPAR Habitats", "geonode:OSPARhabPolygons", false, true, null, "https://odims.ospar.org/geoserver/wms");
         
-                //default selector
-                this_.configureMapSelector("EEZ");
-        
-                //do business once geomorphic feature data is loaded
-                this_.fetchGeomorphicFeatures()
-                .done(function(data){
-                
-                    //add geomorphic Feature layers
-                    this_.addGeomorphicFeatureLayers();
-            
-                    //analyzer button (trigger WPS)
-                    $("#analyzer").on("click", function(e){
-                            var areaType = this_.$areaTypeSelector.select2("data")[0].id;
-                            var areaId = this_.$areaSelector.select2("data")[0].id;
-                            console.log("MPA analysis for "+areaType+" id ='"+areaId+"'");
-                            this_.executeWPSRequest(areaType, areaId);
-                            this_.closeQueryDialog();
-                    });
+			//default selector
+			this_.configureMapSelector("EEZ");
+	
+			//do business once geomorphic feature data is loaded
+			this_.fetchGeomorphicFeatures()
+			.done(function(data){
+			
+				//add geomorphic Feature layers
+				this_.addGeomorphicFeatureLayers();
+		
+				//analyzer button (trigger WPS)
+				$("#analyzer").on("click", function(e){                            
+						
+						$("#areaTypeSelector").prop("disabled", true);
+						$("#areaSelector").prop("disabled", true);
+						$("#analyzer").attr("disabled",true);
+			
+						$('#mpaTabs').show();
+						$('#mpaTabs').tabs();
+						$('#mpaTabs').tabs( "option", "active", 0 ); //go to table
+		
+						$("#mpaResultsWrapper").show();
+						$("#mpaResultsCharts").show();
+						$("#mpaResultsWrapper").empty();
+						$("#mpaResultsCharts").empty();
+						$("#mpaResultsLoader").show();
+						
+						if(this_.userAreaFile){
+							//if custom file upload
+							console.log("MPA custom analysis");
+							this_.closeQueryDialog();
+							$("#mpaResultsLoaderMsg").html("Uploading shapefile...");
+							this_.uploadUserAreaFile().then(function(uploadedEntity){
+								console.log(uploadedEntity);
+								$("#mpaResultsLoaderMsg").html("Analyzing shapefile...");
+								this_.executeWPSRequest(null,null,uploadedEntity);
+							});
+						}else{
+							//if based on zone layer
+							var areaType = this_.$areaTypeSelector.select2("data")[0].id;
+							var areaId = this_.$areaSelector.select2("data")[0].id;
+							console.log("MPA analysis for "+areaType+" id ='"+areaId+"'");
+							this_.closeQueryDialog();
+							$("#mpaResultsLoaderMsg").html("Analyzing MPAs...");
+							this_.executeWPSRequest(areaType, areaId);
+						}
+						
+				});
 
-            $($("li[data-where='#pageMap']")).on("click", function(e){
-                $($("#map").find("canvas")).show();
-            });
-            
-                    // for testing table/reporting only
-                    if(this_.constants.DEBUG_REPORTING){
-               
-                            //go to report tab
-                            $('#mpaTabs').show();
-                            $('#mpaTabs').tabs();
-                            $('#mpaTabs').tabs( "option", "active", 0 ); //go to table
-                            $("#mpaResultsWrapper").show();
-                            $("#mpaResultsCharts").show();
-                            $("#mpaResultsWrapper").empty();
-                            $("#mpaResultsCharts").empty();
-                            $("#mpaResultsLoader").show();
-                
-                            //simulate execution
-                            var url = "https://data.d4science.org/VDVyTjVmVkFkUzRjK1llZ25sSXY0cVJqUk41TmZVa0VHbWJQNStIS0N6Yz0-VLT";
-                            this_.storeWPSOutputMetadata("EEZ", 8404, [-81.21527777999995, 20.36826343900003, -70.63139390299995, 30.355082680000066], 0, 0);
-                            this_.getWPSOutputData(url);
-                    }
-                })
-                .fail(function() {
-                    alert("geodata.json is not valid JSON data");
-                });
-        
+				$($("li[data-where='#pageMap']")).on("click", function(e){
+					$($("#map").find("canvas")).show();
+				});
+
+			})
+			.fail(function() {
+				alert("geodata.json is not valid JSON data");
+			});
         }
 
 		//===========================================================================================
@@ -1954,7 +2011,7 @@ var myApp = myApp || {};
             this.closeDialog("queryDialog");
         }
        
-		
+		 
 		//===========================================================================================
 		//application init
 		//===========================================================================================

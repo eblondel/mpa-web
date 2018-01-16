@@ -142,6 +142,10 @@ nav ul li.active { background-color: #0C71B8;}
 .partner-logo{ height:40px; margin-top:10px; margin-right:5px;}
 .partner-logos{text-align:center;}
 
+.ui-dialog .ui-dialog-content {
+	overflow: hidden;
+}
+
 /** main **/
 html, body {
     	overflow: hidden;
@@ -302,7 +306,7 @@ canvas { opacity: 0.9;}
 #mpaResultsLoader {
     	position: absolute;
     	height: 100px;
-    	width: 100px;
+    	width: 200px;
     	top: 50%;
     	left: 50%;
     	margin-top: -50px;
