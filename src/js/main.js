@@ -1983,7 +1983,7 @@ var myApp = myApp || {};
 
 			//add MPA layer
             this_.addLayer(true, 2, "allmpas", "Marine Protected Areas", "W_mpa:geo_fea_mpa", true, true);
-			//this_.addLayer(true, 0, "ospar_polygons", "OSPAR Habitats", "geonode:OSPARhabPolygons", false, true, null, "https://odims.ospar.org/geoserver/wms");
+			this_.addLayer(true, 0, "emodnet_seafloor_habitats_2017", "EMODNet Seafloor habitats (2017)", "W_mpa:emodnet_seafloor_habitat_2017", false, false);
         
 			//default selector
 			this_.configureDefaultMapSelector("EEZ");
