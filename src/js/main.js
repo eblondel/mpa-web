@@ -10,10 +10,11 @@
  */
 
 var myApp = myApp || {};
+myApp.VERSION = "Version 1.0-beta2";
 
 (function ($) {
 	$(document).ready(function(){
-
+		$("#paim-webapp-version").html(myApp.VERSION);
 		
 		//constants
 		//===========================================================================================
