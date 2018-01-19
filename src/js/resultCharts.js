@@ -6,7 +6,7 @@
 myApp.initResultsChart = function() {
     'use strict';
     var this_ = this;
-    
+    console.log("is custom?" + this_.custom);
 	var texColumns = ["id", "name", "type"];
 	
     var statData = JSON.parse(JSON.stringify(this_.processData));
@@ -42,7 +42,7 @@ myApp.initResultsChart = function() {
 	var chartData   = jQuery.extend([], data[1]);
 	
 	
-	var bar1_name = this_.custom? "Custom areas" : chartData[0].name;
+	var bar1_name = chartData[0].name;
     var bar2_name = chartData[1].name;
 	
     var dataDisplay = [[],[]];
@@ -64,8 +64,8 @@ myApp.initResultsChart = function() {
 	var dataSeries = new Array();
 	dataSeries.push({
 		name: bar1_name,
-		data: (this_.custom? dataDisplay[1] : dataDisplay[0]),
-		stack: (this_.custom? 'All MPAs' : 'EEZ'),
+		data: dataDisplay[0],
+		stack: (this_.custom? 'All MPAs' : this_.processMetadata.areaType),
 		color: '#7cb5ec'
 	});
 
