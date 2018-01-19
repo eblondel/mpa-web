@@ -33,9 +33,9 @@ myApp.PAIM = true;
 			OGC_WFS_BASEURL: "https://paim.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			//OGC_WFS_BBOX: [-180, -90, 180, 90],
-            OGC_WPS_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
-			OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V4",
-			OGC_WPS_OUTPUTDATA_HTTPS: true,
+            DATAMINER_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+			DATAMINER_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V4",
+			DATAMINER_OUTPUTDATA_HTTPS: true,
             OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
 			D4S_HOMELIBRARY_BASEURL: "https://workspace-repository.d4science.org/home-library-webapp/rest",
@@ -47,7 +47,7 @@ myApp.PAIM = true;
 		}
 		
 		if(!myApp.PAIM){
-			myApp.constants.OGC_WPS_BASEURL = "https://dataminer-prototypes.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US";
+			myApp.constants.DATAMINER_BASEURL = "https://dataminer-prototypes.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US";
 		}
 		
 		
@@ -1393,17 +1393,17 @@ myApp.PAIM = true;
 			this._configureMapSelector(null, this.constants.MAP_SELECTOR_CUSTOM, false, false, true);
 		}		
 		
-		// WPS analysis methods
+		//Analysis methods
 		//===========================================================================================
 		
 		
 		/**
-		 * Execute
+		 * Execute or retrieves from cache
 		 * @param areaType the area type 'EEZ' or 'ECOREGION'
 		 * @param areaId the id of the selected area
 		 * @param areaFileEntity an entity returned by myApp.uploadFile (for custom upload)
 		 */		
-		myApp.executeWPSRequest = function(areaType, areaId, areaFileEntity){
+		myApp.executeAlgorithmRequest = function(areaType, areaId, areaFileEntity){
 			
 			var this_ = this;
 			
@@ -1411,38 +1411,37 @@ myApp.PAIM = true;
 			this_.custom = areaFileEntity? true : false;
 
 			//set feature extent
-			if(!areaFileEntity){ //TODO remove!!!!!!!!!!!!!!!!
-				this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
-			}
+			this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
+			
 			var t1 = new Date();
 			
-			console.log("Executing WPS request with the following params");
+			console.log("Executing algorithm request with the following params");
 			console.log("Security Token = "+this.securityToken);
 			if(areaType) console.log("Area type = "+areaType);
 			if(areaId) console.log("Area Id = "+areaId);
 					
-			//building WPS GET request
-			var wpsRequest = this.constants.OGC_WPS_BASEURL;
-			wpsRequest += "&Identifier="+this.constants.OGC_WPS_IDENTIFIER,
-			wpsRequest += "&gcube-token="+this.securityToken;
+			//building GET request
+			var dmRequest = this.constants.DATAMINER_BASEURL;
+			dmRequest += "&Identifier="+this.constants.DATAMINER_IDENTIFIER,
+			dmRequest += "&gcube-token="+this.securityToken;
 			var selectedFeatures = this.getSelectedFeatures();
 			var selected_data_feature = (selectedFeatures.length == 0)? "NA" : encodeURIComponent(selectedFeatures.join(','));
 			
-			//data inputs
-			wpsRequest += "&DataInputs=";
-			wpsRequest += "Report_Format=json";
-			wpsRequest += ";MPA_Shapefile_Url=" + (areaFileEntity? encodeURIComponent(areaFileEntity.url) : encodeURIComponent("https://absences.zip"));
-			wpsRequest += ";Marine_Boundary=" + (areaType? areaType : "EEZ");
-			wpsRequest += ";Region_Id=" + (areaId? areaId : "NA");
-			wpsRequest += ";Selected_Data_Feature=" + selected_data_feature;
-            
 			//output metadata
-			this_.storeWPSOutputMetadata(areaType, areaId, this_.areaExtent, t1, undefined);
+			this_.storeAlgorithmOutputMetadata(areaType, areaId, this_.areaExtent, t1, undefined);
 			
-			//execute WPS Get request
+			//data inputs
+			dmRequest += "&DataInputs=";
+			dmRequest += "Report_Format=json";
+			dmRequest += ";MPA_Shapefile_Url=" + (areaFileEntity? encodeURIComponent(areaFileEntity.url) : encodeURIComponent("https://absences.zip"));
+			dmRequest += ";Marine_Boundary=" + (areaType? areaType : "EEZ");
+			dmRequest += ";Region_Id=" + (areaId? areaId : "NA");
+			dmRequest += ";Selected_Data_Feature=" + selected_data_feature;
+			
+			//execute Get request
 			$.ajax({
 				type: "GET",
-				url: wpsRequest,
+				url: dmRequest,
 				cache: false,
 				dataType: "xml",
 				success: function(xml) {
@@ -1456,13 +1455,13 @@ myApp.PAIM = true;
 					//process output data
                     //Recent DataMiner nows handle logs as 1st Result, result is stored as 2d Result (!)
 					var dataUrl = $($(xml).find('d4science\\:Data, Data')[1]).text();
-					this_.getWPSOutputData(dataUrl, this_.custom);
+					this_.getAlgorithmOutputData(dataUrl, this_.custom);
 					
 				},
 				error : function (xhr, ajaxOptions, thrownError){
-					console.log("Error while executing WPS request");
+					console.log("Error while executing algorithm request");
 					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed…</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
-					$("#mpaResultsWrapper").append("<p style='color:black;'>GET Request '"+wpsRequest+"' failed!</p>");
+					$("#mpaResultsWrapper").append("<p style='color:black;'>GET Request '"+dmRequest+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
                     $("#areaTypeSelector").prop("disabled", false);
                     $("#areaSelector").prop("disabled", false);
@@ -1475,19 +1474,19 @@ myApp.PAIM = true;
 		}
 		
 		/**
-		 * Get WPS output JSON data
+		 * Get algorithm output JSON data
 		 * @param url
 		 * @param custom
 		 */		
-		myApp.getWPSOutputData = function(url){
+		myApp.getAlgorithmOutputData = function(url){
 			
 			var this_ = this;
 			
-			if(this_.constants.OGC_WPS_OUTPUTDATA_HTTPS){
+			if(this_.constants.DATAMINER_OUTPUTDATA_HTTPS){
 				url = url.replace(/^http:\/\//i, 'https://');
 			}
 			
-			console.log("Fetching WPS output data '"+url+"'");
+			console.log("Fetching algorithm output data '"+url+"'");
 			
 			$.ajax({
 				url: url,
@@ -1624,8 +1623,8 @@ myApp.PAIM = true;
                 
 				},
 				error : function (xhr, ajaxOptions, thrownError){
-					console.log("Error while fetching WPS output data");
-					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed…</br></br>Erors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
+					console.log("Error while fetching algorithm output data");
+					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed…</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
 					$("#mpaResultsWrapper").append("<p style='color:red;'>GET Request '"+url+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
 					$("#areaTypeSelector").prop("disabled", false);
@@ -1636,9 +1635,9 @@ myApp.PAIM = true;
 		}
 		
 		/**
-		 * Stores local WPS output metadata
+		 * Stores local Algorithm output metadata
 		 */
-		myApp.storeWPSOutputMetadata = function(areaType, areaId, areaExtent, start, end){
+		myApp.storeAlgorithmOutputMetadata = function(areaType, areaId, areaExtent, start, end){
 			this.processMetadata = {
 				areaType : areaType,
 				areaId: areaId,
@@ -2011,7 +2010,7 @@ myApp.PAIM = true;
 				//add geomorphic Feature layers
 				this_.addGeomorphicFeatureLayers();
 		
-				//analyzer button (trigger WPS)
+				//analyzer button (trigger Dataminer)
 				$("#analyzer").on("click", function(e){                            
 						
 						$("#areaTypeSelector").prop("disabled", true);
@@ -2036,7 +2035,7 @@ myApp.PAIM = true;
 							this_.uploadUserAreaFile().then(function(uploadedEntity){
 								console.log(uploadedEntity);
 								$("#mpaResultsLoaderMsg").html("Analyzing shapefile...");
-								this_.executeWPSRequest(null,null,uploadedEntity);
+								this_.executedmRequest(null,null,uploadedEntity);
 							});
 						}else{
 							//if based on zone layer
@@ -2045,7 +2044,7 @@ myApp.PAIM = true;
 							console.log("MPA analysis for "+areaType+" id ='"+areaId+"'");
 							this_.closeQueryDialog();
 							$("#mpaResultsLoaderMsg").html("Analyzing MPAs...");
-							this_.executeWPSRequest(areaType, areaId);
+							this_.executedmRequest(areaType, areaId);
 						}
 						
 				});
