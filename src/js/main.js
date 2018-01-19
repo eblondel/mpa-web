@@ -11,6 +11,7 @@
 
 var myApp = myApp || {};
 myApp.VERSION = "Version 1.0-beta2";
+myApp.PAIM = true;
 
 (function ($) {
 	$(document).ready(function(){
@@ -32,7 +33,6 @@ myApp.VERSION = "Version 1.0-beta2";
 			OGC_WFS_BASEURL: "https://paim.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			//OGC_WFS_BBOX: [-180, -90, 180, 90],
-           	//OGC_WPS_BASEURL: "https://dataminer-cloud1.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
             OGC_WPS_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
 			OGC_WPS_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V4",
 			OGC_WPS_OUTPUTDATA_HTTPS: true,
@@ -45,6 +45,11 @@ myApp.VERSION = "Version 1.0-beta2";
 			SURFACE_ROUND_DECIMALS: 2,
             DEBUG_REPORTING: false
 		}
+		
+		if(!myApp.PAIM){
+			myApp.constants.OGC_WPS_BASEURL = "https://dataminer-prototypes.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US";
+		}
+		
 		
 		//Utils
 		//===========================================================================================
@@ -1464,7 +1469,7 @@ myApp.VERSION = "Version 1.0-beta2";
                     $("#analyzer").attr("disabled",false);
                     $("#mpaResultsLoader").hide();
 					$($("li[data-where='#pageResults']")[0]).show();
-					$($("li[data-where='#pageReports']")[0]).show();
+					if(!this_.custom) $($("li[data-where='#pageReports']")[0]).show();
 				}
 			});
 		}
@@ -1534,7 +1539,7 @@ myApp.VERSION = "Version 1.0-beta2";
 					});
 					
 					// Initialize Highcharts
-					if(!this_.custom) this_.initResultsChart();
+					this_.initResultsChart();
 						
 					//timer
 					var timer = (this_.processMetadata.end - this_.processMetadata.start) / 1000;

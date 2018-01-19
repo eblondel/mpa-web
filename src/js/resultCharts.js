@@ -7,7 +7,11 @@ myApp.initResultsChart = function() {
     'use strict';
     var this_ = this;
     
+	var texColumns = ["id", "name", "type"];
+	
     var statData = JSON.parse(JSON.stringify(this_.processData));
+	var refRow = this_.processData[0];
+	var colNames = Object.keys(refRow);
 	
     var format = $('input[name=formatSwitcher]:checked').val();
     if(typeof format == 'undefined'){
@@ -16,12 +20,10 @@ myApp.initResultsChart = function() {
 	if (format == "percentage") {
 
 		var roundFactor = Math.pow(10,this.constants.SURFACE_ROUND_DECIMALS);	
-
-		var refRow = this_.processData[0];
-		var colNames = Object.keys(refRow);
+		
 		for(var i=0;i<colNames.length;i++){
 			var datacol = colNames[i];
-			if(["id", "name", "type"].indexOf(datacol) == -1){
+			if(textColumns.indexOf(datacol) == -1){
 				for(var j=0;j<statData.length;j++){
 					var refValue = refRow[datacol];
 					var outValue = statData[j][datacol] / refValue * 100;
@@ -36,7 +38,10 @@ myApp.initResultsChart = function() {
     var data = [this_.columnNames, statData];
     var chartNames  = jQuery.extend([], data[0]);
 	chartNames      = chartNames.splice(4, (chartNames.length - 4));
-    var chartData   = jQuery.extend([], data[1]);
+   
+	var chartData   = jQuery.extend([], data[1]);
+	
+	
 	var bar1_name = this_.custom? "Custom areas" : chartData[0].name;
     var bar2_name = chartData[1].name;
 	
@@ -59,8 +64,8 @@ myApp.initResultsChart = function() {
 	var dataSeries = new Array();
 	dataSeries.push({
 		name: bar1_name,
-		data: dataDisplay[0],
-		stack: 'EEZ',
+		data: (this_.custom? dataDisplay[1] : dataDisplay[0]),
+		stack: (this_custom? 'All MPAs' : 'EEZ'),
 		color: '#7cb5ec'
 	});
 
