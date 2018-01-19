@@ -7,7 +7,7 @@ myApp.initResultsChart = function() {
     'use strict';
     var this_ = this;
     console.log("is custom?" + this_.custom);
-	var texColumns = ["id", "name", "type"];
+	var textColumns = ["id", "name", "type"];
 	
     var statData = JSON.parse(JSON.stringify(this_.processData));
 	var refRow = this_.processData[0];
@@ -15,7 +15,8 @@ myApp.initResultsChart = function() {
 	
     var format = $('input[name=formatSwitcher]:checked').val();
     if(typeof format == 'undefined'){
-		format = this_.custom? "surface" : "percentage"; //for init results chart just after the MPA analysis
+		format = "surface";
+		//format = this_.custom? "surface" : "percentage"; //for init results chart just after the MPA analysis
     }
 	if (format == "percentage") {
 
