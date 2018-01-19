@@ -1560,10 +1560,10 @@ myApp.PAIM = true;
 
 					var csvUploadButton = '<button type="button" class="mpaResultsTable-csv-upload" title="Save & Download Results data (CSV)" onclick="myApp.saveData(true)"></button>';
 					$("#mpaResultsWrapper").append(csvUploadButton);
-					if(!this_.custom){
-						var pdfExportButton = '<button type="button" class="mpaResultsTable-pdf-export" title="Save & Download Results report (PDF)" onclick="myApp.saveResults(true)"></button>';
-						$("#mpaResultsWrapper").append(pdfExportButton);
-					}
+
+					var pdfExportButton = '<button type="button" class="mpaResultsTable-pdf-export" title="Save & Download Results report (PDF)" onclick="myApp.saveResults(true)"></button>';
+					$("#mpaResultsWrapper").append(pdfExportButton);
+				
 					var loader = '<div id="upload-loader" style="display:none;"><span class="mpaResultsTable-upload-loader"></span><span id="upload-state" class="mpaResultsTable-upload-state"></span></div>';
 					$("#mpaResultsWrapper").append(loader);
 						
@@ -1874,16 +1874,20 @@ myApp.PAIM = true;
 			pdf.setFontSize(15);
 			
 			//handle information on the selected feature
-			var selectedEntity = this_.processData.filter(function(row){if(row.type != "MPA") return row})[0];
-			pdf.setFontType('bold');
-			var entity = selectedEntity.name + ' (' + selectedEntity.type +')';
-			var entityTxt = pdf.splitTextToSize(entity, pdf.internal.pageSize.width - 110, {})			
-			pdf.text(10, 50, entityTxt);
-			pdf.setFontType('normal');
-			pdf.setFontSize(12);
-			pdf.text(10, 70, 'ID: ' + selectedEntity.id + ' (' + this_.areaIdProperty + ')');
-			if(this_.processMetadata.areaType == "EEZ"){
-				pdf.text(10, 75, "EEZ description: " + "http://www.marineregions.org/gazetteer.php?p=details&id=" + selectedEntity.id);
+			if(!this_.custom){
+				var selectedEntity = this_.processData.filter(function(row){if(row.type != "MPA") return row})[0];
+				pdf.setFontType('bold');
+				var entity = selectedEntity.name + ' (' + selectedEntity.type +')';
+				var entityTxt = pdf.splitTextToSize(entity, pdf.internal.pageSize.width - 110, {})			
+				pdf.text(10, 50, entityTxt);
+				pdf.setFontType('normal');
+				pdf.setFontSize(12);
+				pdf.text(10, 70, 'ID: ' + selectedEntity.id + ' (' + this_.areaIdProperty + ')');
+				if(this_.processMetadata.areaType == "EEZ"){
+					pdf.text(10, 75, "EEZ description: " + "http://www.marineregions.org/gazetteer.php?p=details&id=" + selectedEntity.id);
+				}
+			}else{
+				pdf.text(10, 75, "Custom MPAs shapefile");
 			}
 						
 			//handle user info & date of creation
@@ -1903,26 +1907,28 @@ myApp.PAIM = true;
 
 
 			//Datasources
-			pdf.setFontSize(10);
-			var source1 = "- Marine Protected Areas: IUCN and UNEP-WCMC (2017), The World Database on Protected Areas (WDPA) [On-line], [January 2017], Cambridge, UK: UNEP-WCMC. Available here. ";
-			source1 += "Post-processed by Lucy Bastin and Andrea Mandrici, Joint Research Centre of the European Commission - methodology available at http://www.protectedplanet.net";
-			var source2 = "";
-			if(this.processMetadata.areaType == "EEZ"){
-				source2 = "- Exclusive Economic Zones: Flanders Marine Institute (2016). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 9. ";
-				source2 += "Available online at http://www.marineregions.org";
-			}else if(this.processMetadata.areaType == "ECOREGION"){
-				source2 = "- Marine Ecoregions: CITATION TO ADD";
+			if(!this_.custom){
+				pdf.setFontSize(10);
+				var source1 = "- Marine Protected Areas: IUCN and UNEP-WCMC (2017), The World Database on Protected Areas (WDPA) [On-line], [January 2017], Cambridge, UK: UNEP-WCMC. Available here. ";
+				source1 += "Post-processed by Lucy Bastin and Andrea Mandrici, Joint Research Centre of the European Commission - methodology available at http://www.protectedplanet.net";
+				var source2 = "";
+				if(this.processMetadata.areaType == "EEZ"){
+					source2 = "- Exclusive Economic Zones: Flanders Marine Institute (2016). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 9. ";
+					source2 += "Available online at http://www.marineregions.org";
+				}else if(this.processMetadata.areaType == "ECOREGION"){
+					source2 = "- Marine Ecoregions: CITATION TO ADD";
+				}
+				var source3 = "- The global seafloor geomorphic features map has been produced through a collaboration between Geoscience Australia, GRID-Arendal and Conservation International. ";
+				source3 += "Reference: Harris et. al. (2014) Geomorphology of the oceans.Marine Geology (in Press)";
+				
+				pdf.setFontType('bold');
+				pdf.text(10, 125, 'Data Sources for the Analysis:');
+				pdf.setFontType('normal');
+				pdf.text(15, 130, pdf.splitTextToSize(source1, pdf.internal.pageSize.width - 30, {}));
+				pdf.text(15, 148, pdf.splitTextToSize(source2, pdf.internal.pageSize.width - 30, {}));
+				pdf.text(15, 158, pdf.splitTextToSize(source3, pdf.internal.pageSize.width - 30, {}));
 			}
-			var source3 = "- The global seafloor geomorphic features map has been produced through a collaboration between Geoscience Australia, GRID-Arendal and Conservation International. ";
-			source3 += "Reference: Harris et. al. (2014) Geomorphology of the oceans.Marine Geology (in Press)";
 			
-			pdf.setFontType('bold');
-			pdf.text(10, 125, 'Data Sources for the Analysis:');
-			pdf.setFontType('normal');
-			pdf.text(15, 130, pdf.splitTextToSize(source1, pdf.internal.pageSize.width - 30, {}));
-			pdf.text(15, 148, pdf.splitTextToSize(source2, pdf.internal.pageSize.width - 30, {}));
-			pdf.text(15, 158, pdf.splitTextToSize(source3, pdf.internal.pageSize.width - 30, {}));
-
 			//Map
 			var imageMap = $("#map").find("canvas")[0].toDataURL('image/png');
 			pdf.addImage(imageMap, 'PNG', 20, 175, 170, 100, undefined, 'medium');
@@ -1969,14 +1975,18 @@ myApp.PAIM = true;
 
 			//handle sub-report 1 (surfaces)
 			//-----------------------------
-			$("#surfaceSwitcher")[0].click();
+			if(!this_.custom) $("#surfaceSwitcher")[0].click();
 			createSubReport(false);
 			
-			$("#percentSwitcher")[0].click();
-			createSubReport(true);
+			//handle sub-report 2 (percentage)
+			//--------------------------------
+			if(!this_.custom){
+				$("#percentSwitcher")[0].click();
+				createSubReport(true);
+			}
 			
 			//output
-   			$("#surfaceSwitcher")[0].click();
+   			if(!this_.custom) $("#surfaceSwitcher")[0].click();
 			return pdf;
 		}     
 

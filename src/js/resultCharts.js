@@ -65,7 +65,7 @@ myApp.initResultsChart = function() {
 	dataSeries.push({
 		name: bar1_name,
 		data: (this_.custom? dataDisplay[1] : dataDisplay[0]),
-		stack: (this_custom? 'All MPAs' : 'EEZ'),
+		stack: (this_.custom? 'All MPAs' : 'EEZ'),
 		color: '#7cb5ec'
 	});
 
