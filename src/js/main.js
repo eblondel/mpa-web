@@ -1236,11 +1236,27 @@ myApp.PAIM = true;
 							url: this_.userAreaFile,
 							encoding: 'utf-8'
 						}, function(data) {
+							var pass = true;
 							var features = this_.constants.OGC_WFS_FORMAT.readFeatures(data);
 							console.log(features);
-							this_[map_selector_id].addFeatures(features);
-							this_.areaExtent = this_[map_selector_id].getExtent();
-							this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
+							
+							//validation rule on geometry
+							if(pass){
+								pass = (features[0].getGeometry() instanceof ol.geom.Polygon) | (features[0].getGeometry() instanceof ol.geom.MultiPolygon);
+								if(!pass) $("#userAreaError").html("Error: Polygon geometries expected!");
+							}
+							//validation rule on shapefile name property
+							if(pass){
+								pass = Object.keys(features[0].getProperties()).indexOf("name") != - 1;
+								if(!pass) $("#userAreaError").html("Error: No 'name' shapefile attribute!");
+							}
+							if(pass){
+								this_[map_selector_id].addFeatures(features);
+								this_.areaExtent = this_[map_selector_id].getExtent();
+								this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
+							}else{
+								this_.areaUserFile = undefined;
+							}
 						});
 					}
 					
