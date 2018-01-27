@@ -457,18 +457,26 @@ myApp.PAIM = true;
 		 */
 		myApp.onUserAreaFileSelection = function(files){
 			var this_ = this;
+			$("#userAreaError").empty();
 			if(files.length>0){
-				this_.userAreaFile = files[0];
-				if(this_.$areaSelector){
-					this_.$areaSelector.val('');
-					this_.$areaSelector.trigger('change');
-					this_.$areaSelector.trigger("select2:unselect");
-				}
-				$("#analyzer").show();
+				console.log(files[0]);
+				var maxFileSize = 5000000;
+				if(files[0].size <= maxFileSize){
+					this_.userAreaFile = files[0];
+					if(this_.$areaSelector){
+						this_.$areaSelector.val('');
+						this_.$areaSelector.trigger('change');
+						this_.$areaSelector.trigger("select2:unselect");
+					}
 				
-				//temporary shapefile handling with OL3
-				this_.configureCustomMapSelector();
-				
+					//temporary shapefile handling with OL3
+					this_.configureCustomMapSelector();
+
+					$("#analyzer").show();	
+				}else{
+					this_.userAreaFile = undefined;
+					$("#userAreaError").html("Error: Maximum file size (" +(maxFileSize/1e6)+ "Mb) exceeded!");
+				}			
 			}else{
 				this_.userAreaFile = undefined;
 			}
@@ -1229,6 +1237,7 @@ myApp.PAIM = true;
 							encoding: 'utf-8'
 						}, function(data) {
 							var features = this_.constants.OGC_WFS_FORMAT.readFeatures(data);
+							console.log(features);
 							this_[map_selector_id].addFeatures(features);
 							this_.areaExtent = this_[map_selector_id].getExtent();
 							this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
