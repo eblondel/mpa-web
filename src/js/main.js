@@ -671,8 +671,10 @@ myApp.PAIM = true;
 				ulHtml += '<ul>';
                 for(var i=0;i<data.length;i++){
                     var item = data[i];
-                    var liHtml = '<li><input id="'+item.id+'" type="checkbox" onclick="myApp.toggleGeomorphicFeatureLayer(\''+item.id+'\')"/>'+item.title+'</li>';
-                    ulHtml += liHtml;
+                    if(item.process){
+						var liHtml = '<li><input id="'+item.id+'" type="checkbox" onclick="myApp.toggleGeomorphicFeatureLayer(\''+item.id+'\')"/>'+item.title+'</li>';
+						ulHtml += liHtml;
+					}
                 }
                 $("#features-checkboxes").html(ulHtml);
                 
@@ -1507,6 +1509,7 @@ myApp.PAIM = true;
 					algorithmRequest += "&DataInputs=";
 					algorithmRequest += "Report_Format=json";
 					algorithmRequest += ";MPA_Shapefile_Url=" + (areaFileEntity? encodeURIComponent(areaFileEntity.url) : encodeURIComponent("https://absences.zip"));
+					//TODO NEXT! algorithmRequest += ";MPA_Shapefile_FieldName=" + ;
 					algorithmRequest += ";Marine_Boundary=" + (areaType? areaType : "EEZ");
 					algorithmRequest += ";Region_Id=" + (areaId? areaId : "NA");
 					algorithmRequest += ";Selected_Data_Feature=" + selected_data_feature;

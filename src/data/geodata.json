@@ -2,81 +2,116 @@
 {
 	"id": "seamounts",
 	"title": "Seamounts",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "guyots",
 	"title": "Guyots",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "canyons",
 	"title": "Canyons",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "ridges",
 	"title": "Ridges",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "plateaus",
 	"title": "Plateaus",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "spreading_ridges",
 	"title": "Spreading ridges",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "rift_valleys",
 	"title": "Rift valleys",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "glacial_troughs",
 	"title": "Glacial troughs",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "shelf_valleys",
 	"title": "Shelf valleys",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "trenches",
 	"title": "Trenches",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "troughs",
 	"title": "Troughs",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "terraces",
 	"title": "Terraces",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "fans",
 	"title": "Fans",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "rises",
 	"title": "Rises",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "bridges",
 	"title": "Bridges",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "escarpments",
 	"title": "Escarpments",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "shelf",
 	"title": "Shelf",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "slope",
 	"title": "Slope",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "abyss",
 	"title": "Abyss",
-	"visible": false
+	"visible": false,
+	"process": true
 },{
 	"id": "hadal",
 	"title": "Hadal",
-	"visible": false
+	"visible": false,
+	"process": true
+},{
+	"id": "reefs",
+	"title": "Reefs",
+	"visible": false,
+	"process": false
+},{
+	"id": "seagrass",
+	"title": "Seagrass",
+	"visible": false,
+	"process": false
+},{
+	"id": "mangroves",
+	"title": "Mangroves",
+	"visible": false,
+	"process": false
 }]
