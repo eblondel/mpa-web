@@ -161,7 +161,7 @@
         <form id="mpaForm">
             <!-- Zone layer -->
 			<div class="row">
-				<div class="col-md-5">
+				<div style="float: left;margin-left: 10px;width: 45%;">
 					<b>Select MPAs from a region:</b><br><br>
 					<div class="selector-wrapper">
 						<div id="areaTypeSelectorWrapper">
@@ -177,15 +177,19 @@
 							<img alt="loading" src="img/glyphicons-366-restart@3x-inv.png" class="small" />
 						</p>
 						<div id="areaSelectorWrapper">
-							<select id="areaSelector" style="display:none;margin-top:10px;"></select>
+							<select id="areaSelector" style="display:none;margin-top:10px;"></select><span class="required-field">*</span>
 						</div>
 					</div>
 					<br>
 				</div>
-				<div class="col-md-1" style="text-align:center;">OR</div>
-				<div class="col-md-6">
+				<div style="float:left;width:6%;">OR</div>
+				<div style="float: left;margin-left: 10px;width: 45%;">
 					<b>Select your own MPA shapefile:</b><br><br>
 					<input type="file" id="userArea" onchange="myApp.onUserAreaFileSelection(this.files)" accept=".zip"/>
+					<br>
+					<div id="fieldSelectorWrapper" class="selector-wrapper">
+						<select id="fieldSelector" style="display:none;marin-top:10px;"></select><span class="required-field">*</span>
+					</div>
 					<span id="userAreaError"></span>
 				</div>
 			</div>

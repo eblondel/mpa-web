@@ -2,7 +2,7 @@
  * MPA Analysis web-application by UN FAO & UNEP GRID-ARENDAL
  * Application development powered by FAO FIGIS team, and funded by BlueBridge EC project
  *
- * Last change: 2018-01-16T17:01:16.610Z
+ * Last change: 2018-02-20T08:31:20.266Z
  *
  * @author Emmanuel Blondel GIS Expert, Marine web-information systems Developer, UN-FAO <emmanuel.blondel@fao.org> (alternate email <emmanuel.blondel1@gmail.com>)
  * @author Levi Westerveld Project Assistant, GRID-ARENDAL <levi.westerveld@grida.no>
@@ -23,28 +23,28 @@ myApp.PAIM = true;
 			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
 			OVERLAY_GROUP_NAMES: [{name: "External layers"},{name: "Geomorphic Features"},{name: "Marine Protected Areas"},{name: "Base overlays"}],
-            MAP_ZOOM: 3,
+           		MAP_ZOOM: 3,
 			MAP_PROJECTION: 'EPSG:4326',
 			MAP_SELECTOR_DEFAULT: 'geoselector-default',
 			MAP_SELECTOR_CUSTOM: 'geoselector-custom',
-            OGC_WMS_NS: "W_mpa",
-            OGC_WMS_SUFFIX: "geo_fea_",
+            		OGC_WMS_NS: "W_mpa",
+            		OGC_WMS_SUFFIX: "geo_fea_",
 			OGC_WMS_BASEURL: "https://paim.d4science.org/geoserver/wms",
 			OGC_WFS_BASEURL: "https://paim.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			OGC_WFS_BBOX: null,
 			OGC_WFS_CACHE: "paim_cache_db",
-            DATAMINER_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
-			DATAMINER_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V4",
+            		DATAMINER_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+			DATAMINER_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V4_1",
 			DATAMINER_OUTPUTDATA_HTTPS: true,
-            OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
+            		OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
 			D4S_HOMELIBRARY_BASEURL: "https://workspace-repository.d4science.org/home-library-webapp/rest",
 			WORKSPACE_USER_FOLDER: "PAIM-reports",
 			WORKSPACE_TEMP_FOLDER: "temp",
 			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
-            DEBUG_REPORTING: false
+            		DEBUG_REPORTING: false
 		}
 		
 		if(!myApp.PAIM){
@@ -448,6 +448,7 @@ myApp.PAIM = true;
 		 * @param entity as returned by myApp.uploadFile
 		 */
 		myApp.downloadFile = function(entity){
+			console.log(entity.url);
 			window.open(entity.url, "_self");
 		}
 			
@@ -458,6 +459,8 @@ myApp.PAIM = true;
 		myApp.onUserAreaFileSelection = function(files){
 			var this_ = this;
 			$("#userAreaError").empty();
+			$("#fieldSelector").empty();
+			$("#fieldSelectorWrapper").hide();
 			if(files.length>0){
 				console.log(files[0]);
 				var maxFileSize = 5000000;
@@ -701,9 +704,11 @@ myApp.PAIM = true;
 			});
 			this.$areaTypeSelector.val('');
 			this.$areaTypeSelector.trigger('change');
+			$("#fieldSelectorWrapper").hide();
 			$("#areaTypeSelector").on("select2:select", function (e) {
 				var areaType = $("#areaTypeSelector").select2("val");
 				this_.configureDefaultMapSelector(areaType);
+				$("#fieldSelectorWrapper").hide();
 			});
 		}
 		
@@ -1190,6 +1195,7 @@ myApp.PAIM = true;
 										document.getElementById("userArea").value = "";
 										this_.userAreaFile = undefined;
 										this_.userAreaFileName = undefined;
+										$("#fieldSelectorWrapper").hide();
 										this_.removeLayerByProperty("geoselector-custom", "id");
 										this_.map.changed();
 									}
@@ -1242,15 +1248,11 @@ myApp.PAIM = true;
 							var features = this_.constants.OGC_WFS_FORMAT.readFeatures(data);
 							console.log(features);
 							
+
 							//validation rule on geometry
 							if(pass){
 								pass = (features[0].getGeometry() instanceof ol.geom.Polygon) | (features[0].getGeometry() instanceof ol.geom.MultiPolygon);
 								if(!pass) $("#userAreaError").html("Error: Polygon geometries expected!");
-							}
-							//validation rule on shapefile name property
-							if(pass){
-								pass = Object.keys(features[0].getProperties()).indexOf("name") != - 1;
-								if(!pass) $("#userAreaError").html("Error: No 'name' shapefile attribute!");
 							}
 							if(pass){
 								this_[map_selector_id].addFeatures(features);
@@ -1258,6 +1260,35 @@ myApp.PAIM = true;
 								this_.map.getView().fit(this_.areaExtent, this_.map.getSize());
 							}else{
 								this_.areaUserFile = undefined;
+							}
+
+							//fieldname selector
+							if(pass){
+								var fieldnames = Object.keys(features[0].getProperties()).filter(function(key){if(key != "geometry"){return key}});
+								$("#fieldSelectorWrapper").show();
+								this_.$fieldSelector = $("#fieldSelector").select2({
+									placeholder: "Select a field",
+									sorter: function(data) {
+										data.sort(function(a,b){
+											a = a.text.toLowerCase();
+										 	b = b.text.toLowerCase();
+										 	if(a > b) {
+												return 1;
+										 	} else if (a < b) {
+												return -1;
+										 	}
+										 	return 0;
+									 	});
+										return data;
+									}
+								});
+								for(var i=0;i<fieldnames.length;i++){
+									var fieldname = fieldnames[i];
+									var option = new Option(fieldname,fieldname);
+									this_.$fieldSelector.append(option);
+								}
+								this_.$fieldSelector.val('');
+								this_.$fieldSelector.trigger('change');
 							}
 						});
 					}
@@ -1504,12 +1535,12 @@ myApp.PAIM = true;
 					
 					//output metadata
 					this_.storeAlgorithmOutputMetadata(areaType, areaId, this_.areaExtent, t1, undefined);
-					
+
 					//data inputs
 					algorithmRequest += "&DataInputs=";
 					algorithmRequest += "Report_Format=json";
 					algorithmRequest += ";MPA_Shapefile_Url=" + (areaFileEntity? encodeURIComponent(areaFileEntity.url) : encodeURIComponent("https://absences.zip"));
-					//TODO NEXT! algorithmRequest += ";MPA_Shapefile_FieldName=" + ;
+					algorithmRequest += ";Field_name=" + (areaFileEntity? this_.$fieldSelector.val() : 'name');
 					algorithmRequest += ";Marine_Boundary=" + (areaType? areaType : "EEZ");
 					algorithmRequest += ";Region_Id=" + (areaId? areaId : "NA");
 					algorithmRequest += ";Selected_Data_Feature=" + selected_data_feature;

@@ -263,9 +263,17 @@ canvas { opacity: 0.9;}
     	width: 100%;
 }
 
- #areaTypeSelector, #areaSelector, #areaSelector:disabled {
+#areaTypeSelector, #areaSelector, #areaSelector:disabled, #fieldSelector {
 	width: 250px !important;
 } 
+
+.required-field {
+	font-size:20px;
+	color:red;
+	vertical-align:middle;
+	margin-left:6px;
+	cursor:default;
+}
 
 #features-checkboxes ul{ display: flex; flex-wrap: wrap; list-style-type: none; margin-bottom: 0px; padding-left: 0; }
 #features-checkboxes ul li{ flex: 0 0 calc(50% - 10 px); margin: 5px; padding: 5px 0; text-align: center; box-sizing: border-box; }
