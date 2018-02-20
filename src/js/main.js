@@ -409,6 +409,10 @@ myApp.PAIM = true;
 									if(uploadStateMsg) $("#upload-state").text("");
 									var xml = $.parseXML(fileLink);
 									var link = xml.getElementsByTagName("string")[0].childNodes[0].data;
+									
+									console.log("Patching file retrieval from workspace, forcing to HTTPS");
+									link = link.replace(/^http:\/\//i, 'https://'); //patch 20180220
+
 									deferredUpload.resolve({
 										path: parentPath,
 										name: fileName.split(".")[0],
@@ -428,6 +432,10 @@ myApp.PAIM = true;
 					if(uploadStateMsg) $("#upload-state").text("");
 					var xml = $.parseXML(fileLink);
 					var link = xml.getElementsByTagName("string")[0].childNodes[0].data;
+					
+					console.log("Patching file retrieval from workspace, forcing to HTTPS");
+					link = link.replace(/^http:\/\//i, 'https://'); //patch 20180220
+
 					deferredUpload.resolve({
 						path: parentPath,
 						name: fileName.split(".")[0],
