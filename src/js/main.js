@@ -2,7 +2,7 @@
  * MPA Analysis web-application by UN FAO & UNEP GRID-ARENDAL
  * Application development powered by FAO FIGIS team, and funded by BlueBridge EC project
  *
- * Last change: 2018-02-20T08:31:20.266Z
+ * Last change: 2018-02-22T15:27:45.183Z
  *
  * @author Emmanuel Blondel GIS Expert, Marine web-information systems Developer, UN-FAO <emmanuel.blondel@fao.org> (alternate email <emmanuel.blondel1@gmail.com>)
  * @author Levi Westerveld Project Assistant, GRID-ARENDAL <levi.westerveld@grida.no>
@@ -22,29 +22,29 @@ myApp.PAIM = true;
 		myApp.constants = {
 			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
-			OVERLAY_GROUP_NAMES: [{name: "External layers"},{name: "Geomorphic Features"},{name: "Marine Protected Areas"},{name: "Base overlays"}],
-           		MAP_ZOOM: 3,
+			OVERLAY_GROUP_NAMES: [{name: "External layers"},{name: "Target datasets"},{name: "Marine Protected Areas"},{name: "Base overlays"}],
+           	MAP_ZOOM: 3,
 			MAP_PROJECTION: 'EPSG:4326',
 			MAP_SELECTOR_DEFAULT: 'geoselector-default',
 			MAP_SELECTOR_CUSTOM: 'geoselector-custom',
-            		OGC_WMS_NS: "W_mpa",
-            		OGC_WMS_SUFFIX: "geo_fea_",
+            OGC_WMS_NS: "W_mpa",
+            OGC_WMS_SUFFIX: "geo_fea_",
 			OGC_WMS_BASEURL: "https://paim.d4science.org/geoserver/wms",
 			OGC_WFS_BASEURL: "https://paim.d4science.org/geoserver/wfs",
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			OGC_WFS_BBOX: null,
 			OGC_WFS_CACHE: "paim_cache_db",
-            		DATAMINER_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+            DATAMINER_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
 			DATAMINER_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V4_1",
 			DATAMINER_OUTPUTDATA_HTTPS: true,
-            		OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
+            OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
 			D4S_SOCIALNETWORKING_BASEURL: "https://socialnetworking1.d4science.org/social-networking-library-ws/rest/2",
 			D4S_HOMELIBRARY_BASEURL: "https://workspace-repository.d4science.org/home-library-webapp/rest",
 			WORKSPACE_USER_FOLDER: "PAIM-reports",
 			WORKSPACE_TEMP_FOLDER: "temp",
-			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
+			SURFACE_UNIT: {id: 'sqkm', label: 'kmÂ²'},
 			SURFACE_ROUND_DECIMALS: 2,
-            		DEBUG_REPORTING: false
+            DEBUG_REPORTING: false
 		}
 		
 		if(!myApp.PAIM){
@@ -186,7 +186,7 @@ myApp.PAIM = true;
 				refValue = refRow[Object.keys(refRow)[meta.col]]
 				outValue = value / refValue * 100;
 				outValue = Math.round(outValue * roundFactor) / roundFactor;
-				if(refValue == 0 || outValue == 0) outValue = "–";
+				if(refValue == 0 || outValue == 0) outValue = "â€“";
 			}else if(format == "surface"){
 				var factor = 1;
 				switch(this.constants.SURFACE_UNIT.id){
@@ -195,7 +195,7 @@ myApp.PAIM = true;
 					default: factor = 1; break;
 				}
 				outValue = Math.round(value * factor * roundFactor) / roundFactor;
-				if(outValue == 0) outValue = "–";
+				if(outValue == 0) outValue = "â€“";
 			}
 			return outValue;
             
@@ -613,7 +613,7 @@ myApp.PAIM = true;
 			return deferred.promise();	
 		}  
 	
-		//Geomorphic Features
+		//Target datasets
 		//==========================================================================================
 		myApp.sanitizeMetadataElement = function(str){
             str = str.replace(/\s{2,}/g, ' ');
@@ -621,7 +621,7 @@ myApp.PAIM = true;
             return str;
         }
         
-        myApp.fetchGeomorphicFeatureMetadata = function(metadataId){
+        myApp.fetchTargetDatasetMetadata = function(metadataId){
                 var this_ = this;
                 var deferred = $.Deferred();
                 var request =  this.constants.OGC_CSW_BASEURL + "?service=CSW&request=GetRecordById&Version=2.0.2";
@@ -654,11 +654,11 @@ myApp.PAIM = true;
                             mdCitation = "No reference available";
                      }
                 
-                        for(var i=0;i<this_.geomorphicFeatures.length;i++){
+                        for(var i=0;i<this_.targetDatasets.length;i++){
                             var id = metadataId.split("geo_fea_")[1];
-                            if(this_.geomorphicFeatures[i].id === id){
-                               this_.geomorphicFeatures[i]["description"] = mdAbstract;
-                               this_.geomorphicFeatures[i]["reference"] = mdCitation;
+                            if(this_.targetDatasets[i].id === id){
+                               this_.targetDatasets[i]["description"] = mdAbstract;
+                               this_.targetDatasets[i]["reference"] = mdCitation;
                                break;
                           }
                         }
@@ -669,38 +669,53 @@ myApp.PAIM = true;
                 return deferred.promise();
         }
         
-        myApp.fetchGeomorphicFeatures = function(){
-        
-              var deferred = $.Deferred();
-        
-			  var this_ = this;
-			  $.getJSON(this.constants.GEO_DATA, function(data){
-				this_.geomorphicFeatures = data;
-                
-                //build query interface
-				var ulHtml = '<ul><li><input id="all_geomorphicfeatures" type="checkbox" onclick="myApp.toggleGeomorphicFeatureLayers()"><em>All geomorphic features</em></input></li></ul>';
+        myApp.fetchTargetDatasets = function(){
+          var deferred = $.Deferred();
+		  var this_ = this;
+		  console.log("Fetching local application geodata.json file...")
+		  $.getJSON(this_.constants.GEO_DATA, function(data){
+			console.log(data);
+			this_.targetDatasets = data.datasets;
+			this_.targetDatasetGroups = data.groups;
+	
+			//build query interface
+			var groupIds = Object.keys(this_.targetDatasetGroups);
+			for(var k=0;k<groupIds.length;k++){
+				var trgGroupId = groupIds[k];
+				var trgGroupData = this_.targetDatasets.filter(function(obj){if(obj.group == trgGroupId){return obj}});
+				var ulHtml = "";
+				//adhoc rule for 'geomorphic' group
+				if(trgGroupId == "geomorphic"){
+					ulHtml += '<ul><li><input id="all_geomorphicfeatures" type="checkbox" onclick="myApp.toggleTargetDatasetLayers(\"'+trgGroupId+'\")"><em>All geomorphic features</em></input></li></ul>';
+				}
 				ulHtml += '<ul>';
-                for(var i=0;i<data.length;i++){
-                    var item = data[i];
-                    if(item.process){
-						var liHtml = '<li><input id="'+item.id+'" type="checkbox" onclick="myApp.toggleGeomorphicFeatureLayer(\''+item.id+'\')"/>'+item.title+'</li>';
+				for(var i=0;i<trgGroupData.length;i++){
+					var item = trgGroupData[i];
+					if(item.process){
+						var liHtml = '<li><input id="'+item.id+'" type="checkbox" onclick="myApp.toggleTargetDatasetLayer(\''+item.id+'\')"/>'+item.title+'</li>';
 						ulHtml += liHtml;
 					}
-                }
-                $("#features-checkboxes").html(ulHtml);
-                
-                //fetch geomorphic feature metadata
-                var promises = new Array();
-                for(var i=0;i<data.length;i++){
-                    var metadataId = this_.constants.OGC_WMS_SUFFIX + data[i].id;
-                    promises.push(this_.fetchGeomorphicFeatureMetadata(metadataId));
-                }
-                $.when(promises).done(function(){
-                    deferred.resolve(this_.geomorphicFeatures);
-                });
+				}
+				var divId = trgGroupId +"-checkboxes";
+				var divHtml = '<div id="'+divId+'" class="target-checkboxes">';
+				divHtml += "<b>"+this_.targetDatasetGroups[trgGroupId]+":</b><br>";
+				divHtml += ulHtml;
+				
+				$("#targetlayers").append(divHtml);
+				$("#targetlayers").append("<br>");
+			}
+		
+			//fetch target dataset metadata
+			var promises = new Array();
+			for(var i=0;i<this_.targetDatasets.length;i++){
+				var metadataId = this_.constants.OGC_WMS_SUFFIX + this_.targetDatasets[i].id;
+				promises.push(this_.fetchTargetDatasetMetadata(metadataId));
+			}
+			$.when(promises).done(function(){
+				deferred.resolve(this_.targetDatasets);
 			});
-            
-            return deferred.promise();
+		  });
+		  return deferred.promise();
 		}
 		
 		//Area type selector
@@ -745,7 +760,7 @@ myApp.PAIM = true;
 							source : new ol.source.XYZ({							
 								attributions: [
 									new ol.Attribution({
-										html: 'Tiles © <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer">ArcGIS</a>'
+										html: 'Tiles Â© <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer">ArcGIS</a>'
 									})
 								],
 								projection: ol.proj.get(this_.constants.MAP_PROJECTION),
@@ -765,7 +780,7 @@ myApp.PAIM = true;
 							source : new ol.source.XYZ({
 								attributions: [
 									new ol.Attribution({
-										html: 'Tiles © <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer">ArcGIS</a>'
+										html: 'Tiles Â© <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer">ArcGIS</a>'
 									})
 								],
 								projection: ol.proj.get(this_.constants.MAP_PROJECTION),
@@ -790,7 +805,7 @@ myApp.PAIM = true;
 				'title': this.constants.OVERLAY_GROUP_NAMES[0].name,
 				layers: [ ],
 			});
-			var geomorphicLayers = new ol.layer.Group({
+			var targetDatasetLayers = new ol.layer.Group({
 				'title': this.constants.OVERLAY_GROUP_NAMES[1].name,
 				layers: [ ],
 			});
@@ -802,14 +817,14 @@ myApp.PAIM = true;
 				'title': this.constants.OVERLAY_GROUP_NAMES[3].name,
 				layers: [ ],
 			});
-			var overlays = [otherLayers, geomorphicLayers, mpaOverlays, baseOverlays];
+			var overlays = [otherLayers, targetDatasetLayers, mpaOverlays, baseOverlays];
 		
 			var defaultMapExtent = ((this.constants.OGC_WFS_BBOX)? this.constants.OGC_WFS_BBOX : [-180, -90, 180, 90]);
 			var defaultMapZoom = ((this.constants.OGC_WFS_BBOX)? 5 : this.constants.MAP_ZOOM);
             
             		if(main){
                 		this.baseLayers = baseLayers;
-                		this.geomorphicLayers = geomorphicLayers;
+                		this.targetDatasetLayers = targetDatasetLayers;
                 		this.baseOverlays = baseOverlays;
                 		this.overlays = overlays;
                 		this.defaultMapExtent = defaultMapExtent,
@@ -985,17 +1000,17 @@ myApp.PAIM = true;
         }
         
 		/**
-		 * Adds Geomorphic Feature layer
-		 * @param gfeature object
+		 * Adds Target dataset layer
+		 * @param def object
 		 */
-		myApp.addGeomorphicFeatureLayer = function(gfeature, main){
+		myApp.addTargetDatasetLayer = function(def, main){
 			var layer = new ol.layer.Tile({
-				id : gfeature.id,
-				title : gfeature.title,
+				id : def.id,
+				title : def.title,
 				source : new ol.source.TileWMS({
 					url : this.constants.OGC_WMS_BASEURL,
 					params : {
-							'LAYERS' : this.constants.OGC_WMS_NS + ":" + this.constants.OGC_WMS_SUFFIX + gfeature.id,
+							'LAYERS' : this.constants.OGC_WMS_NS + ":" + this.constants.OGC_WMS_SUFFIX + def.id,
 							'VERSION': '1.1.1',
 							'FORMAT' : 'image/png',
 							'TILED'	 : true,
@@ -1006,10 +1021,10 @@ myApp.PAIM = true;
 					crossOrigin: 'anonymous'
 				}),
 				opacity : 0.8,
-				visible : (main? gfeature.visible : true)
+				visible : (main? def.visible : true)
 			});
 			myApp.setLegendGraphic(layer);
-            layer.id = gfeature.id;
+            layer.id = def.id;
 			layer.showLegendGraphic = true;
 			layer.overlayGroup = this.constants.OVERLAY_GROUP_NAMES[0];
             
@@ -1027,16 +1042,15 @@ myApp.PAIM = true;
 		}
 		
 		/**
-		 * Adds Geomorphic Feature layer
-		 * @param gfeature object
+		 * Adds target dataset layer
 		 */
-		myApp.addGeomorphicFeatureLayers = function(gfeature){
-			this.geomorphicFeatures.reverse();
-			for(var i=0;i<this.geomorphicFeatures.length;i++){
-				var gfeature = this.geomorphicFeatures[i];
-				this.addGeomorphicFeatureLayer(gfeature, true);
+		myApp.addTargetDatasetLayers = function(){
+			this.targetDatasets.reverse();
+			for(var i=0;i<this.targetDatasets.length;i++){
+				var def = this.targetDatasets[i];
+				this.addTargetDatasetLayer(def, true);
 			}
-			this.geomorphicFeatures.reverse();
+			this.targetDatasets.reverse();
 			
 			//try to collapse by default the geomorphic features in layerswitcher (doesn't work)
 			//console.log($($($(".layer-switcher-layergroup")[1]).find("label")[0]));
@@ -1063,10 +1077,10 @@ myApp.PAIM = true;
 		}
         
         /**
-         * Toggles geomorphic Feature layer
-         * @param id the geomorphic feature id
+         * Toggles target dataset layer
+         * @param id the target dataset id
          */
-        myApp.toggleGeomorphicFeatureLayer = function(id){
+        myApp.toggleTargetDatasetLayer = function(id){
             var layer = this.getLayerByProperty(id, "id");
             if(layer.getVisible()){
                 layer.setVisible(false);
@@ -1075,21 +1089,24 @@ myApp.PAIM = true;
             }
         }
 		
-		myApp.toggleGeomorphicFeatureLayers = function(){
-			for(var i=0;i<this.geomorphicFeatures.length;i++){
-				$("#"+this.geomorphicFeatures[i].id).trigger('click');
+		myApp.toggleTargetDatasetLayers = function(group){
+			var data = this.targetDatasets.filter(function(obj){if(obj.type == group){return obj}});
+			for(var i=0;i<data.length;i++){
+				$("#"+data[i].id).trigger('click');
 			}
 		}
         
         /**
          * Get feature selection
          */
-        myApp.getSelectedFeatures = function(){
+        myApp.getSelectedTargetDatasets = function(){
             var selection = new Array();
-            var inputs = $("#features-checkboxes").find("input");
+            var inputs = $(".target-checkboxes").find("input");
             for(var i=0;i<inputs.length;i++){
                 if(inputs[i].checked & inputs[i].id != "all_geomorphicfeatures") selection.push(inputs[i].id);
             }
+			console.log("Setting selected target datasets");
+			console.log(selection);
             return(selection);
         }
 		
@@ -1236,7 +1253,7 @@ myApp.PAIM = true;
 							error: function(){
 								console.log("failed to query WFS");
 								this_.map = this_.initMap('map', true, false);
-								this_.addGeomorphicFeatureLayers();
+								this_.addTargetDatasetLayers();
 								this_.$areaTypeSelector.val('');
 								this_.$areaTypeSelector.trigger('change');
 								$("#areaSelectorLoader").hide();
@@ -1471,7 +1488,7 @@ myApp.PAIM = true;
 		myApp.hasAlgorithmCachedResult = function(areaType, areaId){
 			var this_ = this;
 			var deferred = $.Deferred();
-			var cache_key = areaType + "-" + areaId + "-" + this_.getSelectedFeatures().sort().join("-");
+			var cache_key = areaType + "-" + areaId + "-" + this_.getSelectedTargetDatasets().sort().join("-");
 			var cache_filter = "key = '" + cache_key + "'";
 			var cache_request =  this_.constants.OGC_WFS_BASEURL + "?version=1.0.0&request=GetFeature";
 			cache_request += "&typeName=" + this_.constants.OGC_WFS_CACHE;
@@ -1530,7 +1547,7 @@ myApp.PAIM = true;
 				console.log("-- Algorithm query parameters --");
 				if(areaType) console.log("Area type = "+areaType);
 				if(areaId) console.log("Area Id = "+areaId);
-				var selectedFeatures = this_.getSelectedFeatures();
+				var selectedFeatures = this_.getSelectedTargetDatasets();
 				console.log("Features = " + selectedFeatures.join(","));
 				
 				if(!cacheResult.cached){
@@ -1552,7 +1569,7 @@ myApp.PAIM = true;
 					algorithmRequest += ";Marine_Boundary=" + (areaType? areaType : "EEZ");
 					algorithmRequest += ";Region_Id=" + (areaId? areaId : "NA");
 					algorithmRequest += ";Selected_Data_Feature=" + selected_data_feature;
-					
+				
 					//execute Get request
 					$.ajax({
 						type: "GET",
@@ -1574,8 +1591,9 @@ myApp.PAIM = true;
 							
 						},
 						error : function (xhr, ajaxOptions, thrownError){
-							console.log("Error while executing algorithm request");
-							$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed…</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
+							console.log("Error while executing algorithm request: " + thrownError);
+							console.log(xhr);
+							$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performedâ€¦</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
 							$("#mpaResultsWrapper").append("<p style='color:black;'>GET Request '"+algorithmRequest+"' failed!</p>");
 							$("#mpaResultsLoader").hide();
 							$("#areaTypeSelector").prop("disabled", false);
@@ -1643,8 +1661,8 @@ myApp.PAIM = true;
 					this_.columnNames = ["id", "Name", "Type", "Area"];
 					for(var i=0;i<columns.length;i++){
 						var column = columns[i];
-						for(var j=0;j<this_.geomorphicFeatures.length;j++){
-							var gtype = this_.geomorphicFeatures[j];
+						for(var j=0;j<this_.targetDatasets.length;j++){
+							var gtype = this_.targetDatasets[j];
 							if(gtype.id === column){
 								this_.columnNames.push(gtype.title);
 								break;
@@ -1671,10 +1689,10 @@ myApp.PAIM = true;
 					
 					var formatSwitcherHtml = '<table class="mpa-formatswitcher"><tr>';
 					if(!this_.custom){
-						formatSwitcherHtml += '<td><input id="surfaceSwitcher" type="radio" name="formatSwitcher" value="surface" checked onclick="myApp.renderStatistics()">Surface (km²)</td>';
+						formatSwitcherHtml += '<td><input id="surfaceSwitcher" type="radio" name="formatSwitcher" value="surface" checked onclick="myApp.renderStatistics()">Surface (kmÂ²)</td>';
 						formatSwitcherHtml += '<td><input id = "percentSwitcher" type="radio" name="formatSwitcher" value="percentage" onclick="myApp.renderStatistics()">% of geomorphic feature</td>';
 					}else{
-						formatSwitcherHtml += '<td>Surface (km²)</td>';
+						formatSwitcherHtml += '<td>Surface (kmÂ²)</td>';
 					}
 					formatSwitcherHtml += '</tr></table>';
 					$("#mpaResultsWrapper").append(formatSwitcherHtml);
@@ -1746,7 +1764,7 @@ myApp.PAIM = true;
 				},
 				error : function (xhr, ajaxOptions, thrownError){
 					console.log("Error while fetching algorithm output data");
-					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed…</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
+					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performedâ€¦</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
 					$("#mpaResultsWrapper").append("<p style='color:red;'>GET Request '"+url+"' failed!</p>");
 					$("#mpaResultsLoader").hide();
 					$("#areaTypeSelector").prop("disabled", false);
@@ -1838,17 +1856,17 @@ myApp.PAIM = true;
                 target: this.processData.filter(function(row){if(row.type == this_.processMetadata.areaType) return row})[0],
                 features: []
             }
-			for(var i=0;i<this.geomorphicFeatures.length;i++){
-				var surface = data[this.geomorphicFeatures[i].id];
+			for(var i=0;i<this.targetDatasets.length;i++){
+				var surface = data[this.targetDatasets[i].id];
 				if(surface > 0){
-						var targetSurface = this.report.target[this.geomorphicFeatures[i].id];
+						var targetSurface = this.report.target[this.targetDatasets[i].id];
 						var featureReport = {
-							metadata: this.geomorphicFeatures[i],
+							metadata: this.targetDatasets[i],
 							data: {
 									surface: this.renderStatValue(surface, "surface"),
 									surfaceUnit: this.constants.SURFACE_UNIT.label,
 									indicator1: Math.round(surface / targetSurface * 100 * 100) / 100,
-									map: this.getFeatureReportMap(this.report.id, this.geomorphicFeatures[i].layer)
+									map: this.getFeatureReportMap(this.report.id, this.targetDatasets[i].layer)
 							}
 						}
 						this.report.features.push(featureReport);
@@ -1947,7 +1965,7 @@ myApp.PAIM = true;
 		
 			var mapId = trgGtype.id + "-map";
 			this.featureMap = this.initMap(mapId, false, this.report.bbox);
-			this.addGeomorphicFeatureLayer(trgGtype, false);
+			this.addTargetDatasetLayer(trgGtype, false);
 			this.addLayer(false, 0, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, true, true, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
 			this.addLayer(false, 0, this.report.id, "MPA", this.report.featureType, true, true, this.report.filter);
 		}
@@ -2126,11 +2144,11 @@ myApp.PAIM = true;
 			this_.configureDefaultMapSelector("EEZ");
 	
 			//do business once geomorphic feature data is loaded
-			this_.fetchGeomorphicFeatures()
+			this_.fetchTargetDatasets()
 			.done(function(data){
 			
 				//add geomorphic Feature layers
-				this_.addGeomorphicFeatureLayers();
+				this_.addTargetDatasetLayers();
 		
 				//analyzer button (trigger Dataminer)
 				$("#analyzer").on("click", function(e){                            

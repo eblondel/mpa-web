@@ -1,117 +1,147 @@
-[
 {
-	"id": "seamounts",
-	"title": "Seamounts",
-	"visible": false,
-	"process": true
-},{
-	"id": "guyots",
-	"title": "Guyots",
-	"visible": false,
-	"process": true
-},{
-	"id": "canyons",
-	"title": "Canyons",
-	"visible": false,
-	"process": true
-},{
-	"id": "ridges",
-	"title": "Ridges",
-	"visible": false,
-	"process": true
-},{
-	"id": "plateaus",
-	"title": "Plateaus",
-	"visible": false,
-	"process": true
-},{
-	"id": "spreading_ridges",
-	"title": "Spreading ridges",
-	"visible": false,
-	"process": true
-},{
-	"id": "rift_valleys",
-	"title": "Rift valleys",
-	"visible": false,
-	"process": true
-},{
-	"id": "glacial_troughs",
-	"title": "Glacial troughs",
-	"visible": false,
-	"process": true
-},{
-	"id": "shelf_valleys",
-	"title": "Shelf valleys",
-	"visible": false,
-	"process": true
-},{
-	"id": "trenches",
-	"title": "Trenches",
-	"visible": false,
-	"process": true
-},{
-	"id": "troughs",
-	"title": "Troughs",
-	"visible": false,
-	"process": true
-},{
-	"id": "terraces",
-	"title": "Terraces",
-	"visible": false,
-	"process": true
-},{
-	"id": "fans",
-	"title": "Fans",
-	"visible": false,
-	"process": true
-},{
-	"id": "rises",
-	"title": "Rises",
-	"visible": false,
-	"process": true
-},{
-	"id": "bridges",
-	"title": "Bridges",
-	"visible": false,
-	"process": true
-},{
-	"id": "escarpments",
-	"title": "Escarpments",
-	"visible": false,
-	"process": true
-},{
-	"id": "shelf",
-	"title": "Shelf",
-	"visible": false,
-	"process": true
-},{
-	"id": "slope",
-	"title": "Slope",
-	"visible": false,
-	"process": true
-},{
-	"id": "abyss",
-	"title": "Abyss",
-	"visible": false,
-	"process": true
-},{
-	"id": "hadal",
-	"title": "Hadal",
-	"visible": false,
-	"process": true
-},{
-	"id": "reefs",
-	"title": "Reefs",
-	"visible": false,
-	"process": false
-},{
-	"id": "seagrass",
-	"title": "Seagrass",
-	"visible": false,
-	"process": false
-},{
-	"id": "mangroves",
-	"title": "Mangroves",
-	"visible": false,
-	"process": false
-}]
+	"groups" : {
+		"geomorphic" : "Geomorphic feature layers",
+		"other" : "Other layers"
+	},
+	"datasets" : [
+		{
+			"id": "seamounts",
+			"title": "Seamounts",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "guyots",
+			"title": "Guyots",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "canyons",
+			"title": "Canyons",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "ridges",
+			"title": "Ridges",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "plateaus",
+			"title": "Plateaus",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "spreading_ridges",
+			"title": "Spreading ridges",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "rift_valleys",
+			"title": "Rift valleys",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "glacial_troughs",
+			"title": "Glacial troughs",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "shelf_valleys",
+			"title": "Shelf valleys",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "trenches",
+			"title": "Trenches",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "troughs",
+			"title": "Troughs",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "terraces",
+			"title": "Terraces",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "fans",
+			"title": "Fans",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "rises",
+			"title": "Rises",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "bridges",
+			"title": "Bridges",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "escarpments",
+			"title": "Escarpments",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "shelf",
+			"title": "Shelf",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "slope",
+			"title": "Slope",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "abyss",
+			"title": "Abyss",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "hadal",
+			"title": "Hadal",
+			"group": "geomorphic",
+			"visible": false,
+			"process": true
+		},{
+			"id": "reefs",
+			"title": "Reefs",
+			"group": "other",
+			"visible": false,
+			"process": true
+		},{
+			"id": "seagrass",
+			"title": "Seagrass",
+			"group": "other",
+			"visible": false,
+			"process": true
+		},{
+			"id": "mangroves",
+			"title": "Mangroves",
+			"group": "other",
+			"visible": false,
+			"process": true
+		}
+	]
+}

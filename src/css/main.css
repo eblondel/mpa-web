@@ -136,7 +136,7 @@ nav ul li.active { background-color: #0C71B8;}
 .dialog-title { text-align:center; }
 .ui-dialog { border-radius:0px; border-color:#fff; background-color:#1674B8; opacity:0.8; color:#fff; padding:0px;}
 .about-dialog  {width:400px !important;}
-.query-dialog  {width:650px !important; height:450px !important;}
+.query-dialog  {width:650px !important; height:500px !important;}
 #userAreaError {font-style:italic;font-weight:bold;font-size:90%;color:#d40c0c;}
 .ui-dialog  .ui-dialog-content { color:#fff; }
 .ui-dialog .ui-dialog-titlebar{background-color:#1674B8; opacity:0.8; color:#fff; border-radius:0px;}
@@ -275,9 +275,9 @@ canvas { opacity: 0.9;}
 	cursor:default;
 }
 
-#features-checkboxes ul{ display: flex; flex-wrap: wrap; list-style-type: none; margin-bottom: 0px; padding-left: 0; }
-#features-checkboxes ul li{ flex: 0 0 calc(50% - 10 px); margin: 5px; padding: 5px 0; text-align: center; box-sizing: border-box; }
-#features-checkboxes ul li input{vertical-align: top; margin-right:2px;}
+.target-checkboxes ul{ display: flex; flex-wrap: wrap; list-style-type: none; margin-bottom: 0px; padding-left: 0; }
+.target-checkboxes ul li{ flex: 0 0 calc(50% - 10 px); margin: 5px; padding: 2px 0; text-align: center; box-sizing: border-box; }
+.target-checkboxes ul li input{vertical-align: top; margin-right:2px;}
 
 #analyzer {
 	padding: 6px;
