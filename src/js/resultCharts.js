@@ -6,7 +6,6 @@
 myApp.initResultsChart = function() {
     'use strict';
     var this_ = this;
-    console.log("is custom?" + this_.custom);
 	var textColumns = ["id", "name", "type"];
 	
     var statData = JSON.parse(JSON.stringify(this_.processData));

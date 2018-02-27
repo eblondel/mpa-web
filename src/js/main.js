@@ -34,7 +34,7 @@ myApp.PAIM = true;
 			OGC_WFS_FORMAT: new ol.format.GeoJSON(),
 			OGC_WFS_BBOX: null,
 			OGC_WFS_CACHE: "paim_cache_db",
-            DATAMINER_BASEURL: "https://dataminer.garr.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US",
+            DATAMINER_BASEURL: "https://dataminer.garr.d4science.org",
 			DATAMINER_IDENTIFIER: "org.gcube.dataanalysis.wps.statisticalmanager.synchserver.mappedclasses.transducerers.MPA_INTERSECT_V4_1",
 			DATAMINER_OUTPUTDATA_HTTPS: true,
             OGC_CSW_BASEURL: "https://geonetwork.d4science.org/geonetwork/srv/eng/csw",
@@ -42,13 +42,13 @@ myApp.PAIM = true;
 			D4S_HOMELIBRARY_BASEURL: "https://workspace-repository.d4science.org/home-library-webapp/rest",
 			WORKSPACE_USER_FOLDER: "PAIM-reports",
 			WORKSPACE_TEMP_FOLDER: "temp",
-			SURFACE_UNIT: {id: 'sqkm', label: 'kmÂ²'},
+			SURFACE_UNIT: {id: 'sqkm', label: 'km²'},
 			SURFACE_ROUND_DECIMALS: 2,
             DEBUG_REPORTING: false
 		}
 		
 		if(!myApp.PAIM){
-			myApp.constants.DATAMINER_BASEURL = "https://dataminer-prototypes.d4science.org/wps/WebProcessingService?request=Execute&service=WPS&Version=1.0.0&lang=en-US";
+			myApp.constants.DATAMINER_BASEURL = "https://dataminer-prototypes.d4science.org";
 		}
 		
 		
@@ -186,7 +186,7 @@ myApp.PAIM = true;
 				refValue = refRow[Object.keys(refRow)[meta.col]]
 				outValue = value / refValue * 100;
 				outValue = Math.round(outValue * roundFactor) / roundFactor;
-				if(refValue == 0 || outValue == 0) outValue = "â€“";
+				if(refValue == 0 || outValue == 0) outValue = "–";
 			}else if(format == "surface"){
 				var factor = 1;
 				switch(this.constants.SURFACE_UNIT.id){
@@ -195,7 +195,7 @@ myApp.PAIM = true;
 					default: factor = 1; break;
 				}
 				outValue = Math.round(value * factor * roundFactor) / roundFactor;
-				if(outValue == 0) outValue = "â€“";
+				if(outValue == 0) outValue = "–";
 			}
 			return outValue;
             
@@ -686,13 +686,13 @@ myApp.PAIM = true;
 				var ulHtml = "";
 				//adhoc rule for 'geomorphic' group
 				if(trgGroupId == "geomorphic"){
-					ulHtml += '<ul><li><input id="all_geomorphicfeatures" type="checkbox" onclick="myApp.toggleTargetDatasetLayers(\"'+trgGroupId+'\")"><em>All geomorphic features</em></input></li></ul>';
+					ulHtml += '<ul><li><input id="all_geomorphicfeatures" type="checkbox" onclick="myApp.toggleTargetDatasetLayers(\''+trgGroupId+'\')"><em>All geomorphic features</em></input></li></ul>';
 				}
 				ulHtml += '<ul>';
 				for(var i=0;i<trgGroupData.length;i++){
 					var item = trgGroupData[i];
 					if(item.process){
-						var liHtml = '<li><input id="'+item.id+'" type="checkbox" onclick="myApp.toggleTargetDatasetLayer(\''+item.id+'\')"/>'+item.title+'</li>';
+						var liHtml = '<li><input id="'+item.id+'" type="checkbox" onchange="myApp.toggleTargetDatasetLayer(\''+item.id+'\')"/>'+item.title+'</li>';
 						ulHtml += liHtml;
 					}
 				}
@@ -1090,9 +1090,12 @@ myApp.PAIM = true;
         }
 		
 		myApp.toggleTargetDatasetLayers = function(group){
-			var data = this.targetDatasets.filter(function(obj){if(obj.type == group){return obj}});
+			var checked = $("#all_geomorphicfeatures").prop("checked");
+			var data = this.targetDatasets.filter(function(obj){if(obj.group == group){return obj}});
 			for(var i=0;i<data.length;i++){
-				$("#"+data[i].id).trigger('click');
+				if((checked && !$("#"+data[i].id).prop("checked")) || (!checked && $("#"+data[i].id).prop("checked"))){
+					$("#"+data[i].id).trigger('click');
+				}
 			}
 		}
         
@@ -1106,6 +1109,7 @@ myApp.PAIM = true;
                 if(inputs[i].checked & inputs[i].id != "all_geomorphicfeatures") selection.push(inputs[i].id);
             }
 			console.log("Setting selected target datasets");
+			selection = selection.sort();
 			console.log(selection);
             return(selection);
         }
@@ -1143,13 +1147,13 @@ myApp.PAIM = true;
 				switch(areaType){
 				case "EEZ":
 					this_.areaFeatureType = "W_mpa:eez";
-					this_.intersectFeatureType = "W_mpa:intersect_mpa_eez_v1";
-					this_.areaIdProperty = "mrgid";
+					this_.intersectFeatureType = "W_mpa:eez_mpa_intersect_v4";
+					this_.areaIdProperty = "mrgid_eez";
 					this_.areaLabelProperty = "geoname";
 					break;
 				case "ECOREGION":
 					this_.areaFeatureType = "W_mpa:marine_ecoregions";
-					this_.intersectFeatureType = "W_mpa:intersect_mpa_marine_ecoregions_v1",
+					this_.intersectFeatureType = "W_mpa:ecoregions_mpa_intersect_v4",
 					this_.areaIdProperty = "ecoid";
 					this_.areaLabelProperty = "ecoregion";
 					break;
@@ -1523,6 +1527,18 @@ myApp.PAIM = true;
 			return deferred.promise();
 		}
 		
+		       
+		/**
+         * Init Dataminer WS
+         */
+		myApp.initDataminerWS = function(){
+			var this_ = this;
+			this_.wps = new WpsService({
+				url: (this_.constants.DATAMINER_BASEURL + "/wps/WebProcessingService?gcube-token=" + this_.securityToken + "&"),
+				version: "1.0.0"
+			});
+		}
+		
 		/**
 		 * Execute or retrieves from cache
 		 * @param areaType the area type 'EEZ' or 'ECOREGION'
@@ -1544,39 +1560,21 @@ myApp.PAIM = true;
 			var actionNext = this_.hasAlgorithmCachedResult(areaType, areaId);
 			actionNext.then(function(cacheResult){
 				
-				console.log("-- Algorithm query parameters --");
-				if(areaType) console.log("Area type = "+areaType);
-				if(areaId) console.log("Area Id = "+areaId);
-				var selectedFeatures = this_.getSelectedTargetDatasets();
-				console.log("Features = " + selectedFeatures.join(","));
-				
 				if(!cacheResult.cached){
 					console.log("Executing algorithm request with the following params");
 					console.log("Security Token = "+this_.securityToken);
-					var algorithmRequest = this_.constants.DATAMINER_BASEURL;
-					algorithmRequest += "&Identifier="+this_.constants.DATAMINER_IDENTIFIER,
-					algorithmRequest += "&gcube-token="+this_.securityToken;
-					var selected_data_feature = (selectedFeatures.length == 0)? "NA" : encodeURIComponent(selectedFeatures.join(','));
+					var selectedFeatures = this_.getSelectedTargetDatasets();
+					var selected_data_feature = (selectedFeatures.length == 0)? "NA" : selectedFeatures.join(',');
 					
 					//output metadata
 					this_.storeAlgorithmOutputMetadata(areaType, areaId, this_.areaExtent, t1, undefined);
 
-					//data inputs
-					algorithmRequest += "&DataInputs=";
-					algorithmRequest += "Report_Format=json";
-					algorithmRequest += ";MPA_Shapefile_Url=" + (areaFileEntity? encodeURIComponent(areaFileEntity.url) : encodeURIComponent("https://absences.zip"));
-					algorithmRequest += ";Field_name=" + (areaFileEntity? this_.$fieldSelector.val() : 'name');
-					algorithmRequest += ";Marine_Boundary=" + (areaType? areaType : "EEZ");
-					algorithmRequest += ";Region_Id=" + (areaId? areaId : "NA");
-					algorithmRequest += ";Selected_Data_Feature=" + selected_data_feature;
-				
-					//execute Get request
-					$.ajax({
-						type: "GET",
-						url: algorithmRequest,
-						cache: false,
-						dataType: "xml",
-						success: function(xml) {
+					//dataminer ws execute callback
+					var wpsExecuteCallback = function(response){
+						var hasSuccess = !response.errorThrown;
+						if(hasSuccess){
+							console.log("Successful algorithm execution!"); 
+							var xml = response.responseDocument;
 							var t2 = new Date();
 							this_.processMetadata.end = t2;
 							this_.processMetadata.dateTime = this_.getFolderDateTimeString(t2);
@@ -1588,13 +1586,11 @@ myApp.PAIM = true;
 							//Recent DataMiner nows handle logs as 1st Result, result is stored as 2d Result (!)
 							var dataUrl = $($(xml).find('d4science\\:Data, Data')[1]).text();
 							this_.getAlgorithmOutputData(dataUrl, false);
-							
-						},
-						error : function (xhr, ajaxOptions, thrownError){
-							console.log("Error while executing algorithm request: " + thrownError);
-							console.log(xhr);
-							$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performedâ€¦</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
-							$("#mpaResultsWrapper").append("<p style='color:black;'>GET Request '"+algorithmRequest+"' failed!</p>");
+						}else{
+							console.log("Error while executing algorithm request: " + response.errorThrown);
+							console.log(response.textStatus);
+							$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed!</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
+							$("#mpaResultsWrapper").append("<p style='color:black;'>Analysis failed!</p>");
 							$("#mpaResultsLoader").hide();
 							$("#areaTypeSelector").prop("disabled", false);
 							$("#areaSelector").prop("disabled", false);
@@ -1603,10 +1599,35 @@ myApp.PAIM = true;
 							$($("li[data-where='#pageResults']")[0]).show();
 							if(!this_.custom) $($("li[data-where='#pageReports']")[0]).show();
 						}
-					});
+					}
+					
+					//wps inputs
+					var inputGen = new InputGenerator();
+					var wpsInputs = new Array();
+					wpsInputs.push(inputGen.createLiteralDataInput_wps_1_0_and_2_0('Report_Format', 'xs:string', 'undefined', 'json'));
+					wpsInputs.push(inputGen.createLiteralDataInput_wps_1_0_and_2_0('MPA_Shapefile_Url', 'xs:string', 'undefined', (areaFileEntity? areaFileEntity.url : "https://absences.zip")));
+					wpsInputs.push(inputGen.createLiteralDataInput_wps_1_0_and_2_0('Field_name', 'xs:string', 'undefined', (areaFileEntity? this_.$fieldSelector.val() : 'name')));
+					wpsInputs.push(inputGen.createLiteralDataInput_wps_1_0_and_2_0('Marine_Boundary', 'xs:string', 'undefined', (areaType? areaType : "EEZ")));
+					wpsInputs.push(inputGen.createLiteralDataInput_wps_1_0_and_2_0('Region_Id','xs:string','undefined',(areaId? areaId : "NA")));
+					wpsInputs.push(inputGen.createLiteralDataInput_wps_1_0_and_2_0('Selected_Data_Feature','xs:string','undefined',selected_data_feature));
+					console.log("-- Algorithm Inputs --");
+					console.log(wpsInputs);
+					
+					//wps outputs
+					var outputGen = new OutputGenerator();
+					var wpsOutputs = new Array();
+					wpsOutputs.push(outputGen.createComplexOutput_WPS_1_0('non_deterministic_output'));
+					console.log("-- Algorithm Outputs --");
+					console.log(wpsOutputs);
+					
+					//execute request
+					console.log("Executing algorithm request...");
+					this_.wps.execute(wpsExecuteCallback, this_.constants.DATAMINER_IDENTIFIER, 'document', 'sync', true, wpsInputs, wpsOutputs);
+					
 				}else{
 					console.log("Retrieving algorithm output from PAIM cache");
 					var t2 = new Date()
+					$($("li[data-where='#pageResults']")[0]).show();
 					this_.storeAlgorithmOutputMetadata(areaType, areaId, this_.areaExtent, t1, t2);
 					this_.processMetadata.dateTime = this_.getFolderDateTimeString(t2);
 					this_.getAlgorithmOutputData(cacheResult.link, true);
@@ -1689,10 +1710,10 @@ myApp.PAIM = true;
 					
 					var formatSwitcherHtml = '<table class="mpa-formatswitcher"><tr>';
 					if(!this_.custom){
-						formatSwitcherHtml += '<td><input id="surfaceSwitcher" type="radio" name="formatSwitcher" value="surface" checked onclick="myApp.renderStatistics()">Surface (kmÂ²)</td>';
+						formatSwitcherHtml += '<td><input id="surfaceSwitcher" type="radio" name="formatSwitcher" value="surface" checked onclick="myApp.renderStatistics()">Surface (km²)</td>';
 						formatSwitcherHtml += '<td><input id = "percentSwitcher" type="radio" name="formatSwitcher" value="percentage" onclick="myApp.renderStatistics()">% of geomorphic feature</td>';
 					}else{
-						formatSwitcherHtml += '<td>Surface (kmÂ²)</td>';
+						formatSwitcherHtml += '<td>Surface (km²)</td>';
 					}
 					formatSwitcherHtml += '</tr></table>';
 					$("#mpaResultsWrapper").append(formatSwitcherHtml);
@@ -1765,7 +1786,7 @@ myApp.PAIM = true;
 				error : function (xhr, ajaxOptions, thrownError){
 					console.log("Error while fetching algorithm output data");
 					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performedâ€¦</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
-					$("#mpaResultsWrapper").append("<p style='color:red;'>GET Request '"+url+"' failed!</p>");
+					$("#mpaResultsWrapper").append("<p style='color:red;'>Analysis failed!</p>");
 					$("#mpaResultsLoader").hide();
 					$("#areaTypeSelector").prop("disabled", false);
                     $("#areaSelector").prop("disabled", false);
@@ -2281,7 +2302,6 @@ myApp.PAIM = true;
         myApp.closeQueryDialog = function(){
             this.closeDialog("queryDialog");
         }
-       
 		 
 		//===========================================================================================
 		//application init
@@ -2290,6 +2310,10 @@ myApp.PAIM = true;
 		//fetch token
 		myApp.fetchSecurityToken();
 
+		//initialize wpsService
+		myApp.initDataminerWS();
+		console.log(myApp.wps);
+		
 		//fetch user profile
 		myApp.fetchUserProfile();
 		
