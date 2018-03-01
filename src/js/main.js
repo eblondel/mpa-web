@@ -551,8 +551,8 @@ myApp.PAIM = true;
 					for(var i=0;i<this_.processData.length;i++){
 						var dataRow = this_.processData[i];
 						if(!this_.custom){
-							if(dataRow.type == "AOI") dataRow.type = this_.constants.AOI;
-							if(dataRow.name == "All AOIs") dataRow.name = dataRow.name.replace("AOI", this_.constants.AOI);
+							if([this_.constants.AOI, "AOI"].indexOf(dataRow.type) >= 0) dataRow.type = this_.constants.AOI;
+							if(["All "+this_.constants.AOI+"s","All AOIs"].indexOf(dataRow.name) >= 0) dataRow.name = dataRow.name.replace("AOI", this_.constants.AOI);
 						}
 						dataForCSV.push(dataRow);
 					}
@@ -1671,9 +1671,9 @@ myApp.PAIM = true;
 					//explicit order by non-AOI (non-MPA in default analysis) (EEZ or ECOREGION)
 					//then All AOIs (MPAs in default analysis) then each AOI (MPA in default analysis)
 					this_.processData = this_.processData.concat(results.filter(function(row){if(["AOI", this_.constants.AOI].indexOf(row.type) == -1) return row}));
-					this_.processData = this_.processData.concat(results.filter(function(row){if(["All AOIs", ("All "+this_.constants.AOI+"s")].indexOf(row.name) > 0) return row}));
+					this_.processData = this_.processData.concat(results.filter(function(row){if(["All AOIs", ("All "+this_.constants.AOI+"s")].indexOf(row.name) >= 0) return row}));
 					var mpas = results.filter(function(row){
-						if(["AOI", this_.constants.AOI].indexOf(row.type) > 0
+						if(["AOI", this_.constants.AOI].indexOf(row.type) >= 0
 						&& ["All AOIs", ("All "+this_.constants.AOI+"s")].indexOf(row.name) == -1){
 							return row
 						}
@@ -1890,13 +1890,13 @@ myApp.PAIM = true;
             var data = this.processData.filter(function(row){if(row.id === String(id)) return row})[0];
             this.report = {
                 id : data.id,
-                name: data.name,
-                type: data.type,
-                isMPA: data.type == "AOI",				
-				isSingleMPA: data.name != "All AOIs" && data.type == "AOI",								
-				isAllMPA: data.name == "All AOIs",
-				isEEZ: this.processMetadata.areatype == "EEZ",
-				isECOREGION: this.processMetadata.areatype == "ECOREGION",
+                name: (([("All "+this_.constants.AOI+"s"),"All AOIs"].indexOf(data.name) >= 0)? (this_.custom? "All AOIs" : ("All "+this_.constants.AOI+"s")) : data.name),
+                type: (([this_.constants.AOI,"AOI"].indexOf(data.type) >= 0)? (this_.custom? "AOI" : this_.constants.AOI) : data.type),
+                isMPA:  ([this_.constants.AOI,"AOI"].indexOf(data.type) >= 0),				
+				isSingleMPA: ([("All "+this_.constants.AOI+"s"),"All AOIs"].indexOf(data.name) == -1 && [this_.constants.AOI,"AOI"].indexOf(data.type) >= 0),								
+				isAllMPA: ([("All "+this_.constants.AOI+"s"),"All AOIs"].indexOf(data.name) >= 0),
+				isEEZ: this.processMetadata.areaType == "EEZ",
+				isECOREGION: this.processMetadata.areaType == "ECOREGION",
                 surface: this.renderStatValue(data.surface, "surface"),
                 surfaceUnit: this.constants.SURFACE_UNIT.label,
                 target: this.processData.filter(function(row){if(row.type == this_.processMetadata.areaType) return row})[0],
@@ -1921,11 +1921,11 @@ myApp.PAIM = true;
             
 			//query intersect by filter (if any mpa) to get bbox
 			var targetFilter = this.areaIdProperty + " = '" + this.report.target.id + "'";
-			if(this.report.type == "AOI" & this.report.name != "All AOIs"){
+			if([this_.constants.AOI, "AOI"].indexOf(this.report.type) >=0 && ["All "+this_.constants.AOI+"s","All AOIs"].indexOf(this.report.name) == -1){
 				targetFilter += " AND wdpaid = " + id;
 			}
 			var intersectRequest = this.constants.OGC_WFS_BASEURL + "?version=1.0.0&request=GetFeature";
-			var targetLayer = (this.report.type != "AOI")? this.areaFeatureType : this_.intersectFeatureType;
+			var targetLayer = ([this_.constants.AOI, "AOI"].indexOf(this.report.type) == -1)? this.areaFeatureType : this_.intersectFeatureType;
 			intersectRequest += "&typeName=" + targetLayer;
 			intersectRequest += "&outputFormat=json";
 			intersectRequest += "&cql_filter=" + targetFilter;
@@ -1976,7 +1976,9 @@ myApp.PAIM = true;
 					//select first feature by default
 					var buttonIdFirst = "#"+this_.report.features[0].metadata.id + "-button";
 					$(buttonIdFirst).trigger("click");
-							
+					
+					console.log("-> Feature report");
+					console.log(this_.report);
 				},
 				error: function(){
 					console.log("failed to query WFS");
