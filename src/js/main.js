@@ -22,6 +22,7 @@ myApp.PAIM = true;
 		myApp.constants = {
 			PUBLIC_TOKEN: "some application token",
 			GEO_DATA: "data/geodata.json",
+			AOI: "MPA",
 			OVERLAY_GROUP_NAMES: [{name: "External layers"},{name: "Target datasets"},{name: "Marine Protected Areas"},{name: "Base overlays"}],
            	MAP_ZOOM: 3,
 			MAP_PROJECTION: 'EPSG:4326',
@@ -389,7 +390,6 @@ myApp.PAIM = true;
 					if(typeof contentHandler == "function"){
 						contentHandler = contentHandler()
 					}
-					console.log(contentHandler);
 					$.ajax({
 						type: 'POST',
 						url: uploadRequest,
@@ -547,10 +547,19 @@ myApp.PAIM = true;
 				this_.createPAIMProcessFolder(true).then(function(processFolderPath){
 					
 					//here we can produce the CSV output (method is not consuming like PDF)
-					var csv = this_.json2csv(this_.processData);
+					var dataForCSV = new Array();
+					for(var i=0;i<this_.processData.length;i++){
+						var dataRow = this_.processData[i];
+						if(!this_.custom){
+							if(dataRow.type == "AOI") dataRow.type = this_.constants.AOI;
+							if(dataRow.name == "All AOIs") dataRow.name = dataRow.name.replace("AOI", this_.constants.AOI);
+						}
+						dataForCSV.push(dataRow);
+					}
+					var csv = this_.json2csv(dataForCSV);
 					
 					//upload CSV data
-					var fileName = "PAIM-report_" + (this_.custom? this_.userAreaFileName.split(".zip")[0] : this_.processData.filter(function(row){if(row.type != "MPA") return row})[0].name) + ".csv";
+					var fileName = "PAIM-report_" + (this_.custom? this_.userAreaFileName.split(".zip")[0] : this_.processData.filter(function(row){if(row.type != "AOI") return row})[0].name) + ".csv";
 					this_.uploadFile(processFolderPath, fileName, csv, 'text/csv;encoding:utf-8', true).then(function(uploadedEntity){
 						if(download){
 							msg = "Downloading CSV file..."
@@ -698,7 +707,7 @@ myApp.PAIM = true;
 				}
 				var divId = trgGroupId +"-checkboxes";
 				var divHtml = '<div id="'+divId+'" class="target-checkboxes">';
-				divHtml += "<b>"+this_.targetDatasetGroups[trgGroupId]+":</b><br>";
+				divHtml += "<b>"+this_.targetDatasetGroups[trgGroupId]+"</b><br>";
 				divHtml += ulHtml;
 				
 				$("#targetlayers").append(divHtml);
@@ -1659,10 +1668,16 @@ myApp.PAIM = true;
 					
 					this_.processData = new Array();
 						
-					//explicit order by non-MPA (EEZ or ECOREGION), then All MPAs, then each MPA
-					this_.processData = this_.processData.concat(results.filter(function(row){if(row.type != "MPA") return row}));
-					this_.processData = this_.processData.concat(results.filter(function(row){if(row.name == "All MPAs") return row}));
-					var mpas = results.filter(function(row){if(row.type == "MPA" & row.name != "All MPAs") return row});
+					//explicit order by non-AOI (non-MPA in default analysis) (EEZ or ECOREGION)
+					//then All AOIs (MPAs in default analysis) then each AOI (MPA in default analysis)
+					this_.processData = this_.processData.concat(results.filter(function(row){if(["AOI", this_.constants.AOI].indexOf(row.type) == -1) return row}));
+					this_.processData = this_.processData.concat(results.filter(function(row){if(["All AOIs", ("All "+this_.constants.AOI+"s")].indexOf(row.name) > 0) return row}));
+					var mpas = results.filter(function(row){
+						if(["AOI", this_.constants.AOI].indexOf(row.type) > 0
+						&& ["All AOIs", ("All "+this_.constants.AOI+"s")].indexOf(row.name) == -1){
+							return row
+						}
+					});
 					mpas.sort(function(a,b) {return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);} ); 
 					this_.processData = this_.processData.concat(mpas);		
 						
@@ -1759,7 +1774,17 @@ myApp.PAIM = true;
 								targets: 1,
 								width: 220,
 								render : function ( mData, type,row, meta ) {
-									return this_.custom? mData : '<a href="#" onclick="myApp.accessReports(\''+row.id+'\')" title="Access report" class="mpa-table-name">' + mData+'</a>';                             
+									var aoiName = mData;
+									if(aoiName == "All AOIs" && !this_.custom){
+										aoiName = aoiName.replace("AOI", this_.constants.AOI);
+									}
+									return this_.custom? mData : '<a href="#" onclick="myApp.accessReports(\''+row.id+'\')" title="Access report" class="mpa-table-name">' + aoiName +'</a>';                             
+								}
+							},
+							{
+								targets: 2,
+								render : function ( mData, type,row, meta ) {
+									return this_.custom? mData : this_.constants.AOI;                             
 								}
 							},
 							{
@@ -1785,7 +1810,7 @@ myApp.PAIM = true;
 				},
 				error : function (xhr, ajaxOptions, thrownError){
 					console.log("Error while fetching algorithm output data");
-					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performedâ€¦</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
+					$("#mpaResultsWrapper").append("<p><h3 style='display:inline;'>Sorry! </h3>Your computation could not be performed...</br></br>Errors can happen when the target region of analysis is very large (such as the Canadian EEZ) or when there are geometry errors in the underlying data that is analyzed. We are working hard towards fixing these errors in the coming weeks, and increasing the efficiency of the analysis.</br>Meanwhile, you could try analyzing another area or select less features to analyze. The error could also be a timeout issue in which case you could try running your analysis using the Data Miner interface in this VRE. Finally, you can also download the R script of the algorithm <a href='https://github.com/grid-arendal/mpa_algo2' target='_blank'><nobr>here</nobr></a> and run it on your own computer on in the VRE instance of R Studio.</br></br><b>Here is the log of your computation:</p>");
 					$("#mpaResultsWrapper").append("<p style='color:red;'>Analysis failed!</p>");
 					$("#mpaResultsLoader").hide();
 					$("#areaTypeSelector").prop("disabled", false);
@@ -1867,9 +1892,9 @@ myApp.PAIM = true;
                 id : data.id,
                 name: data.name,
                 type: data.type,
-                isMPA: data.type == "MPA",				
-				isSingleMPA: data.name != "All MPAs" && data.type == "MPA",								
-				isAllMPA: data.name == "All MPAs",
+                isMPA: data.type == "AOI",				
+				isSingleMPA: data.name != "All AOIs" && data.type == "AOI",								
+				isAllMPA: data.name == "All AOIs",
 				isEEZ: this.processMetadata.areatype == "EEZ",
 				isECOREGION: this.processMetadata.areatype == "ECOREGION",
                 surface: this.renderStatValue(data.surface, "surface"),
@@ -1896,11 +1921,11 @@ myApp.PAIM = true;
             
 			//query intersect by filter (if any mpa) to get bbox
 			var targetFilter = this.areaIdProperty + " = '" + this.report.target.id + "'";
-			if(this.report.type == "MPA" & this.report.name != "All MPAs"){
+			if(this.report.type == "AOI" & this.report.name != "All AOIs"){
 				targetFilter += " AND wdpaid = " + id;
 			}
 			var intersectRequest = this.constants.OGC_WFS_BASEURL + "?version=1.0.0&request=GetFeature";
-			var targetLayer = (this.report.type != "MPA")? this.areaFeatureType : this_.intersectFeatureType;
+			var targetLayer = (this.report.type != "AOI")? this.areaFeatureType : this_.intersectFeatureType;
 			intersectRequest += "&typeName=" + targetLayer;
 			intersectRequest += "&outputFormat=json";
 			intersectRequest += "&cql_filter=" + targetFilter;
@@ -1988,7 +2013,7 @@ myApp.PAIM = true;
 			this.featureMap = this.initMap(mapId, false, this.report.bbox);
 			this.addTargetDatasetLayer(trgGtype, false);
 			this.addLayer(false, 0, this.report.id, this.processMetadata.areaType, this.processMetadata.areaFeatureType, true, true, (this.processMetadata.areaIdProperty + ' = ' + this.processMetadata.areaId));
-			this.addLayer(false, 0, this.report.id, "MPA", this.report.featureType, true, true, this.report.filter);
+			this.addLayer(false, 0, this.report.id, "AOI", this.report.featureType, true, true, this.report.filter);
 		}
 
 		/**
@@ -2030,12 +2055,12 @@ myApp.PAIM = true;
 			//title
 			pdf.setFontType('bold')
 			pdf.setFontSize(20);
-			pdf.text(10, 40, 'MPA Analysis report');
+			pdf.text(10, 40, 'Protected Impact Area Maps – Analysis report');
 			pdf.setFontSize(15);
 			
 			//handle information on the selected feature
 			if(!this_.custom){
-				var selectedEntity = this_.processData.filter(function(row){if(row.type != "MPA") return row})[0];
+				var selectedEntity = this_.processData.filter(function(row){if(row.type != "AOI") return row})[0];
 				pdf.setFontType('bold');
 				var entity = selectedEntity.name + ' (' + selectedEntity.type +')';
 				var entityTxt = pdf.splitTextToSize(entity, pdf.internal.pageSize.width - 110, {})			
@@ -2047,7 +2072,7 @@ myApp.PAIM = true;
 					pdf.text(10, 75, "EEZ description: " + "http://www.marineregions.org/gazetteer.php?p=details&id=" + selectedEntity.id);
 				}
 			}else{
-				pdf.text(10, 75, "Custom MPAs shapefile");
+				pdf.text(10, 75, "Custom Area(s) of Interest (user shapefile)");
 			}
 						
 			//handle user info & date of creation

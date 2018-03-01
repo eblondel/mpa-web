@@ -65,7 +65,7 @@ myApp.initResultsChart = function() {
 	dataSeries.push({
 		name: bar1_name,
 		data: dataDisplay[0],
-		stack: (this_.custom? 'All MPAs' : this_.processMetadata.areaType),
+		stack: (this_.custom? 'All AOIs' : this_.processMetadata.areaType),
 		color: '#7cb5ec'
 	});
 
