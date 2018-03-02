@@ -2103,7 +2103,7 @@ myApp.PAIM = true;
 					source2 = "- Exclusive Economic Zones: Flanders Marine Institute (2016). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 9. ";
 					source2 += "Available online at http://www.marineregions.org";
 				}else if(this.processMetadata.areaType == "ECOREGION"){
-					source2 = "- Marine Ecoregions: CITATION TO ADD";
+					source2 = "- Marine Ecoregions: Spalding MD, Fox HE, Allen GR, Davidson N, Ferdaña ZA, Finlayson M, Halpern BS, Jorge MA, Lombana A, Lourie SA, Martin KD, McManus E, Molnar J, Recchia CA, Robertson J (2007). Marine Ecoregions of the World: a bioregionalization of coast and shelf areas.";
 				}
 				var source3 = "- The global seafloor geomorphic features map has been produced through a collaboration between Geoscience Australia, GRID-Arendal and Conservation International. ";
 				source3 += "Reference: Harris et. al. (2014) Geomorphology of the oceans.Marine Geology (in Press)";
