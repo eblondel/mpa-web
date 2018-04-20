@@ -361,7 +361,7 @@ canvas { opacity: 0.9;}
 .mpa-table-name{font-weight:bold;color:#655898 !important;}
 .mpa-table-stat{font-style:italic;}
 .mpa-timer{position: absolute;top: 60px; font-size:90%;top: 100px;}
-.mpa-formatswitcher{margin:0 auto;}
+.mpa-formatswitcher{margin:20px auto;}
 .mpa-formatswitcher td {padding: 4px;}
 
 .dataTables_wrapper.no-footer .dataTables_scrollBody{
