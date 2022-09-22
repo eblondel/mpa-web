@@ -2,7 +2,7 @@
  * MPA Analysis web-application by UN FAO & UNEP GRID-ARENDAL
  * Application development powered by FAO FIGIS team, and funded by BlueBridge EC project
  *
- * Last change: 2018-02-22T15:27:45.183Z
+ * Last change: 2022-09-22
  *
  * @author Emmanuel Blondel GIS Expert, Marine web-information systems Developer, UN-FAO <emmanuel.blondel@fao.org> (alternate email <emmanuel.blondel1@gmail.com>)
  * @author Levi Westerveld Project Assistant, GRID-ARENDAL <levi.westerveld@grida.no>
@@ -758,13 +758,14 @@ myApp.PAIM = true;
 			var this_ = this;
             
 			//baselayers
-			var esri1Template = 'https://server.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer/tile/{z}/{y}/{x}';
-			var esri2Template = 'https://server.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer/tile/{z}/{y}/{x}';
+			//var esri1Template = 'https://server.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer/tile/{z}/{y}/{x}';
+			var esri1Template = 'https://wi.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+			//var esri2Template = 'https://server.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer/tile/{z}/{y}/{x}';
 			var baseLayers = [
 				new ol.layer.Group({
 					'title': "Basemaps",
 					layers: [
-						new ol.layer.Tile({
+						/*new ol.layer.Tile({
 							title : "ESRI - Countries",
 							type: 'base',
 							source : new ol.source.XYZ({							
@@ -783,18 +784,19 @@ myApp.PAIM = true;
 								crossOrigin: 'anonymous',
 								wrapX: true
                             				})
-						}),
+						}),*/
 						new ol.layer.Tile({
 							title : "ESRI World Imagery",
 							type: 'base',
 							source : new ol.source.XYZ({
 								attributions: [
 									new ol.Attribution({
-										html: 'Tiles Â© <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer">ArcGIS</a>'
+										html: 'Tiles Â© <a href="https://wi.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer">ArcGIS</a>'
 									})
 								],
 								projection: ol.proj.get(this_.constants.MAP_PROJECTION),
-								tileSize: 512,
+								tileSize: 256,
+								maxResolution: 180 / 256,
 								tileUrlFunction: function(tileCoord) {
                 							return esri1Template.replace('{z}', (tileCoord[0] - 1).toString())
                                   						.replace('{x}', tileCoord[1].toString())
